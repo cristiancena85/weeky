@@ -8,6 +8,7 @@ interface AppNotification {
   id: string
   user_id: string
   message: string
+  [key: string]: any
   created_at: string
 }
 
