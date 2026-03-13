@@ -6,7 +6,7 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 
 type ChangeEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*'
 
-interface UseRealtimeOptions<T extends Record<string, unknown>> {
+interface UseRealtimeOptions<T extends object> {
   /** Nombre del schema. Default: 'public' */
   schema?: string
   /** Nombre de la tabla a escuchar */
@@ -29,7 +29,7 @@ interface UseRealtimeOptions<T extends Record<string, unknown>> {
  *   onchange: (payload) => console.log('Nueva notificación:', payload.new),
  * })
  */
-export function useRealtime<T extends Record<string, unknown>>({
+export function useRealtime<T extends object>({
   schema = 'public',
   table,
   event = '*',

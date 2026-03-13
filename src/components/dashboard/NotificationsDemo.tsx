@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRealtime } from '@/hooks/useRealtime'
 import { Bell, Wifi } from 'lucide-react'
 
-interface Notification {
+interface AppNotification {
   id: string
   user_id: string
   message: string
@@ -20,19 +20,19 @@ interface Props {
  * Escucha inserciones en la tabla `notifications` filtradas por el usuario actual.
  */
 export default function NotificationsDemo({ userId }: Props) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [connected, setConnected] = useState(false)
 
   const handleChange = useCallback(
     (payload: { new: unknown }) => {
-      const newItem = payload.new as Notification
+      const newItem = payload.new as AppNotification
       setNotifications((prev) => [newItem, ...prev].slice(0, 20))
       setConnected(true)
     },
     []
   )
 
-  useRealtime<Notification>({
+  useRealtime<AppNotification>({
     table: 'notifications',
     event: 'INSERT',
     filter: `user_id=eq.${userId}`,

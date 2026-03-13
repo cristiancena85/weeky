@@ -16,16 +16,17 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: any[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {
-            // Ignorar si se llama desde un Server Component (solo lectura)
-          }
-        },
+          } catch { }
+        }
       },
     }
   )
+
+
+
 }
