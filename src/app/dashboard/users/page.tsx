@@ -33,29 +33,55 @@ export default async function UsersManagementPage() {
     )
   }
 
-  const users = await getUsers()
-  const roles = await getRoles()
+  try {
+    const users = await getUsers()
+    const roles = await getRoles()
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 pb-10">
-      <nav className="border-b border-white/10 bg-white/5 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-                <ArrowLeft className="w-4 h-4" /> Volver
-              </Link>
-              <div className="h-6 w-px bg-white/10"></div>
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <Users className="w-5 h-5 text-purple-400" />
-                Gestión de Usuarios y Roles
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 pb-10">
+        <nav className="border-b border-white/10 bg-white/5 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard" className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                  <ArrowLeft className="w-4 h-4" /> Volver
+                </Link>
+                <div className="h-6 w-px bg-white/10"></div>
+                <div className="flex items-center gap-2 text-white font-semibold">
+                  <Users className="w-5 h-5 text-purple-400" />
+                  Gestión de Usuarios y Roles
+                </div>
               </div>
-            </div>
-        </div>
-      </nav>
+          </div>
+        </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        <UsersAndRolesView initialUsers={users} initialRoles={roles} />
-      </main>
-    </div>
-  )
+        <main className="max-w-7xl mx-auto px-6 py-10">
+          <UsersAndRolesView initialUsers={users} initialRoles={roles} />
+        </main>
+      </div>
+    )
+  } catch (err: any) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6">
+        <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl max-w-xl w-full">
+          <h2 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+            <ShieldAlert className="w-6 h-6" /> Error en el Servidor
+          </h2>
+          <pre className="text-sm bg-black/40 p-4 rounded-xl overflow-x-auto text-red-200/80 mb-6">
+            {err.message || 'Error desconocido al cargar datos'}
+          </pre>
+          <div className="flex gap-4">
+            <Link href="/dashboard" className="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-colors text-sm">
+              Volver al Inicio
+            </Link>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg transition-colors text-sm"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 }
