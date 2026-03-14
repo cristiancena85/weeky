@@ -2,12 +2,9 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, LogIn, UserPlus, Mail, Lock, AlertCircle } from 'lucide-react'
-
-type AuthMode = 'login' | 'signup'
+import { Loader2, LogIn, Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function AuthForm() {
-  const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,25 +18,10 @@ export default function AuthForm() {
     setMessage(null)
 
     try {
-      if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        // La redirección la maneja el middleware automáticamente
-        window.location.href = '/dashboard'
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        })
-        if (error) throw error
-        setMessage({
-          type: 'success',
-          text: 'Cuenta creada. Revisá tu email para confirmar tu cuenta.',
-        })
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      // La redirección la maneja el middleware automáticamente
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       const error = err as { message?: string }
       setMessage({ type: 'error', text: error.message ?? 'Ocurrió un error inesperado.' })
@@ -56,19 +38,11 @@ export default function AuthForm() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-500/30 mb-4">
-              {mode === 'login' ? (
-                <LogIn className="w-7 h-7 text-purple-400" />
-              ) : (
-                <UserPlus className="w-7 h-7 text-purple-400" />
-              )}
+              <LogIn className="w-7 h-7 text-purple-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white">
-              {mode === 'login' ? 'Bienvenido de vuelta' : 'Crear cuenta'}
-            </h1>
+            <h1 className="text-2xl font-bold text-white">Bienvenido de vuelta</h1>
             <p className="text-slate-400 mt-1 text-sm">
-              {mode === 'login'
-                ? 'Ingresá tus credenciales para continuar'
-                : 'Completá el formulario para registrarte'}
+              Ingresá tus credenciales para continuar
             </p>
           </div>
 
@@ -133,30 +107,10 @@ export default function AuthForm() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/25"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : mode === 'login' ? (
-                <LogIn className="w-4 h-4" />
-              ) : (
-                <UserPlus className="w-4 h-4" />
-              )}
-              {loading ? 'Cargando...' : mode === 'login' ? 'Ingresar' : 'Crear cuenta'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+              {loading ? 'Cargando...' : 'Ingresar'}
             </button>
           </form>
-
-          {/* Toggle mode */}
-          <div className="mt-6 text-center text-sm text-slate-400">
-            {mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}{' '}
-            <button
-              onClick={() => {
-                setMode(mode === 'login' ? 'signup' : 'login')
-                setMessage(null)
-              }}
-              className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
-            >
-              {mode === 'login' ? 'Registrarte' : 'Iniciar sesión'}
-            </button>
-          </div>
         </div>
       </div>
     </div>

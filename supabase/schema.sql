@@ -14,13 +14,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email       TEXT,
   full_name   TEXT,
   avatar_url  TEXT,
-  role        TEXT        NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+  user_type   TEXT        NOT NULL DEFAULT 'usuario' CHECK (user_type IN ('administrador', 'usuario')),
+  role        TEXT        CHECK (role IN ('jefe de deposito', 'jefe de ventas', 'supervisor', 'administrativo', 'tesorero')),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Índice para búsquedas por rol (útil para consultas de admin)
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+-- Índice para búsquedas por tipo de usuario (útil para consultas de admin)
+CREATE INDEX IF NOT EXISTS idx_profiles_user_type ON public.profiles(user_type);
 
 -- ============================================================
 -- 2. FUNCIÓN + TRIGGER: auto-crear perfil al registrar usuario
@@ -107,7 +108,7 @@ CREATE POLICY "Admins can view all profiles"
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin'
+      WHERE id = auth.uid() AND user_type = 'administrador'
     )
   );
 

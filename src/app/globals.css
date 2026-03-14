@@ -2,9 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #0f0f1a;
-  --foreground: #f1f5f9;
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+  }
+
+  .dark {
+    --background: #0f0f1a;
+    --foreground: #f1f5f9;
+  }
 }
 
 body {
