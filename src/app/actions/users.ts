@@ -1,5 +1,6 @@
 'use server'
 
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
@@ -8,11 +9,31 @@ export type UserProfile = {
   email: string
   full_name: string | null
   user_type: 'administrador' | 'usuario'
-  role: 'jefe de deposito' | 'jefe de ventas' | 'supervisor' | 'administrativo' | 'tesorero' | null
+  role: string | null // <-- Ahora aceptará strings dinámicos de la base de datos
   created_at: string
 }
 
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    throw new Error('No estás autenticado.')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('user_type')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.user_type !== 'administrador') {
+    throw new Error('Permisos insuficientes: Se requiere rol de administrador.')
+  }
+}
+
 export async function getUsers(): Promise<UserProfile[]> {
+  await requireAdmin()
   const supabase = await createAdminClient()
   
   // Obtenemos todos los perfiles directamente
@@ -29,6 +50,7 @@ export async function getUsers(): Promise<UserProfile[]> {
 }
 
 export async function createUser(data: any) {
+  await requireAdmin()
   const supabase = await createAdminClient()
   
   // 1. Crear el usuario en auth.users
@@ -69,6 +91,7 @@ export async function createUser(data: any) {
 }
 
 export async function updateUser(id: string, data: any) {
+  await requireAdmin()
   const supabase = await createAdminClient()
 
   const { error } = await supabase
@@ -89,6 +112,7 @@ export async function updateUser(id: string, data: any) {
 }
 
 export async function deleteUser(id: string) {
+  await requireAdmin()
   const supabase = await createAdminClient()
 
   // Al borrar de auth.users, se debe borrar en cascada de la tabla perfiles gracias a "ON DELETE CASCADE"

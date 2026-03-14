@@ -2,8 +2,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Users, ShieldAlert, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import UsersTable from '@/components/dashboard/UsersTable'
+import UsersAndRolesView from '@/components/dashboard/UsersAndRolesView'
 import { getUsers } from '@/app/actions/users'
+import { getRoles } from '@/app/actions/roles'
 
 export default async function UsersManagementPage() {
   const supabase = await createClient()
@@ -33,6 +34,7 @@ export default async function UsersManagementPage() {
   }
 
   const users = await getUsers()
+  const roles = await getRoles()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 pb-10">
@@ -45,14 +47,14 @@ export default async function UsersManagementPage() {
               <div className="h-6 w-px bg-white/10"></div>
               <div className="flex items-center gap-2 text-white font-semibold">
                 <Users className="w-5 h-5 text-purple-400" />
-                Gestión de Usuarios
+                Gestión de Usuarios y Roles
               </div>
             </div>
         </div>
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        <UsersTable initialUsers={users} />
+        <UsersAndRolesView initialUsers={users} initialRoles={roles} />
       </main>
     </div>
   )
