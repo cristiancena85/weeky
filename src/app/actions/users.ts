@@ -7,9 +7,11 @@ import { revalidatePath } from 'next/cache'
 export type UserProfile = {
   id: string
   email: string
-  full_name: string | null
+  first_name: string | null
+  last_name: string | null
+  alias: string
   user_type: 'administrador' | 'usuario'
-  role: string | null // <-- Ahora aceptará strings dinámicos de la base de datos
+  role: string | null
   created_at: string
 }
 
@@ -59,7 +61,9 @@ export async function createUser(data: any) {
     password: data.password,
     email_confirm: true, // Auto confirmar
     user_metadata: {
-      full_name: data.full_name
+      first_name: data.first_name,
+      last_name: data.last_name,
+      alias: data.alias
     }
   })
 
@@ -76,7 +80,9 @@ export async function createUser(data: any) {
     .update({ 
       user_type: data.user_type, 
       role: data.role,
-      full_name: data.full_name 
+      first_name: data.first_name,
+      last_name: data.last_name,
+      alias: data.alias
     })
     .eq('id', userId)
 
@@ -99,7 +105,9 @@ export async function updateUser(id: string, data: any) {
     .update({
       user_type: data.user_type,
       role: data.role,
-      full_name: data.full_name
+      first_name: data.first_name,
+      last_name: data.last_name,
+      alias: data.alias
     })
     .eq('id', id)
 

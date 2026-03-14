@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { LogOut, Bell, User, ShieldCheck, Users } from 'lucide-react'
+import { LogOut, Bell, User, ShieldCheck, Users, Package, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import NotificationsDemo from '@/components/dashboard/NotificationsDemo'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import NotificationsHub from '@/components/dashboard/NotificationsHub'
+import { LogoutButton } from '@/components/dashboard/LogoutButton'
+import { UserMenu } from '@/components/dashboard/UserMenu'
+import { logUserActivity } from '@/app/actions/activity'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -14,18 +16,11 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   // Obtener perfil del usuario
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
-
-  const handleSignOut = async () => {
-    'use server'
-    const supabaseServer = await createClient()
-    await supabaseServer.auth.signOut()
-    redirect('/login')
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 transition-colors duration-300">
@@ -39,89 +34,73 @@ export default async function DashboardPage() {
             <span className="text-slate-900 dark:text-white font-semibold text-lg">Weeky</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            
-            <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <span>{user.email}</span>
-              {profile?.user_type === 'administrador' && (
-                <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full">
-                  <ShieldCheck className="w-3 h-3" />
-                  Admin
-                </span>
-              )}
-            </div>
-
+          <div className="flex items-center gap-2 sm:gap-4">
             {profile?.user_type === 'administrador' && (
-              <div className="flex gap-2">
+              <div className="hidden md:flex gap-2">
+                <Link 
+                  href="/dashboard/catalog"
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                >
+                  <Package className="w-4 h-4" />
+                  Catálogo
+                </Link>
                 <Link 
                   href="/dashboard/users"
-                  className="flex items-center gap-2 text-sm text-white bg-purple-600 hover:bg-purple-500 transition-colors px-3 py-1.5 rounded-lg shadow-lg shadow-purple-500/20"
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
                 >
                   <Users className="w-4 h-4" />
-                  Usuarios y Roles
+                  Usuarios
                 </Link>
               </div>
             )}
 
-            <form action={handleSignOut}>
-              <button
-                type="submit"
-                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Salir</span>
-              </button>
-            </form>
+            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
+            
+            <UserMenu user={user} profile={profile} />
           </div>
         </div>
       </nav>
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-6 py-10 transition-colors">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Bienvenido{profile?.full_name ? `, ${profile.full_name}` : ''}! 👋
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Tu rol actual:{' '}
-            <span className="text-purple-600 dark:text-purple-400 font-medium">{(profile?.role || profile?.user_type) ?? 'usuario'}</span>
-          </p>
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-12">
+          {/* Módulo: Pedidos de la Semana */}
+          <Link 
+            href="/dashboard/orders" 
+            className="bg-purple-600 hover:bg-purple-500 rounded-[2.5rem] p-10 shadow-2xl shadow-purple-500/30 transition-all hover:-translate-y-1 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Package className="w-32 h-32 text-white" />
+            </div>
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="max-w-xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-white/20 rounded-2xl">
+                    <Package className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="font-black text-white text-3xl uppercase italic tracking-tighter">Pedidos Semanales</h2>
+                </div>
+                <p className="text-purple-100 text-lg font-medium leading-relaxed">
+                  Gestiona el stock semanal y procesa pedidos de clientes en tiempo real. 
+                  Colabora con tu equipo de manera eficiente.
+                </p>
+              </div>
+              
+              <div className="flex items-center text-white text-sm font-black gap-3 uppercase tracking-widest bg-white/10 px-6 py-3 rounded-2xl border border-white/20 group-hover:bg-white/20 transition-all whitespace-nowrap self-start md:self-center">
+                Entrar al panel <ArrowLeft className="w-5 h-5 rotate-180" />
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-none transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-500/20 rounded-lg">
-                <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h2 className="font-semibold text-slate-900 dark:text-white">Mi Perfil</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">Email: {user.email}</p>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">Tipo: {profile?.user_type ?? 'usuario'}</p>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">Rol: {profile?.role ?? 'Sin Rol'}</p>
-          </div>
-
-          <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-none transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-green-100 dark:bg-green-500/20 rounded-lg">
-                <Bell className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="font-semibold text-slate-900 dark:text-white">Notificaciones Realtime</h2>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Escuchando cambios en la tabla{' '}
-              <code className="text-purple-600 dark:text-purple-300 bg-slate-100 dark:bg-white/5 px-1 rounded border border-slate-200 dark:border-none">notifications</code> en
-              tiempo real via WebSockets.
-            </p>
-          </div>
+        {/* Realtime hub (Feed + Presence) */}
+        <div className="mt-8">
+          <NotificationsHub userId={user.id} />
         </div>
-
-        {/* Realtime demo */}
-        <NotificationsDemo userId={user.id} />
       </main>
     </div>
   )
 }
+

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
-import PresenceHandler from '@/components/PresenceHandler'
+import { RealtimeProvider } from '@/contexts/RealtimeContext'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -21,9 +21,10 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <PresenceHandler />
-          <Toaster position="top-right" richColors closeButton />
+          <RealtimeProvider>
+            {children}
+            <Toaster position="top-right" richColors closeButton />
+          </RealtimeProvider>
         </ThemeProvider>
       </body>
     </html>

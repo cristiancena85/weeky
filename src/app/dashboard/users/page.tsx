@@ -5,7 +5,7 @@ import Link from 'next/link'
 import UsersAndRolesView from '@/components/dashboard/UsersAndRolesView'
 import { getUsers } from '@/app/actions/users'
 import { getRoles } from '@/app/actions/roles'
-import { ThemeToggle } from '@/components/ThemeToggle'
+import { UserMenu } from '@/components/dashboard/UserMenu'
 
 export default async function UsersManagementPage() {
   const supabase = await createClient()
@@ -15,7 +15,7 @@ export default async function UsersManagementPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_type')
+    .select('*')
     .eq('id', user.id)
     .single()
 
@@ -49,10 +49,10 @@ export default async function UsersManagementPage() {
                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10"></div>
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
                   <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  Gestión de Usuarios y Roles
+                  Usuarios y Roles
                 </div>
               </div>
-              <ThemeToggle />
+              <UserMenu user={user} profile={profile} />
           </div>
         </nav>
 

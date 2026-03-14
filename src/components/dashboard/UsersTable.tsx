@@ -17,7 +17,9 @@ export default function UsersTable({ initialUsers, roles }: { initialUsers: User
     const term = search.toLowerCase()
     return (
       u.email.toLowerCase().includes(term) ||
-      (u.full_name && u.full_name.toLowerCase().includes(term)) ||
+      (u.alias && u.alias.toLowerCase().includes(term)) ||
+      (u.first_name && u.first_name.toLowerCase().includes(term)) ||
+      (u.last_name && u.last_name.toLowerCase().includes(term)) ||
       (u.role && u.role.toLowerCase().includes(term)) ||
       u.user_type.toLowerCase().includes(term)
     )
@@ -102,8 +104,10 @@ export default function UsersTable({ initialUsers, roles }: { initialUsers: User
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-900 dark:text-white">{user.full_name || 'Sin Nombre'}</div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400">{user.email}</div>
+                        <div className="font-medium text-slate-900 dark:text-white">{user.alias}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {user.first_name} {user.last_name} • {user.email}
+                        </div>
                       </div>
                     </div>
                   </td>
