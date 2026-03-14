@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { LogOut, Bell, User, ShieldCheck } from 'lucide-react'
+import { LogOut, Bell, User, ShieldCheck, Users } from 'lucide-react'
+import Link from 'next/link'
 import NotificationsDemo from '@/components/dashboard/NotificationsDemo'
 
 export default async function DashboardPage() {
@@ -41,13 +42,23 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2 text-sm text-slate-300">
               <User className="w-4 h-4 text-purple-400" />
               <span>{user.email}</span>
-              {profile?.role === 'admin' && (
+              {profile?.user_type === 'administrador' && (
                 <span className="flex items-center gap-1 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs px-2 py-0.5 rounded-full">
                   <ShieldCheck className="w-3 h-3" />
                   Admin
                 </span>
               )}
             </div>
+
+            {profile?.user_type === 'administrador' && (
+              <Link 
+                href="/dashboard/users"
+                className="flex items-center gap-2 text-sm text-white bg-purple-600 hover:bg-purple-500 transition-colors px-3 py-1.5 rounded-lg shadow-lg shadow-purple-500/20"
+              >
+                <Users className="w-4 h-4" />
+                Gestión de Usuarios
+              </Link>
+            )}
 
             <form action={handleSignOut}>
               <button
@@ -70,7 +81,7 @@ export default async function DashboardPage() {
           </h1>
           <p className="text-slate-400 mt-1">
             Tu rol actual:{' '}
-            <span className="text-purple-400 font-medium">{profile?.role ?? 'user'}</span>
+            <span className="text-purple-400 font-medium">{(profile?.role || profile?.user_type) ?? 'usuario'}</span>
           </p>
         </div>
 
@@ -84,7 +95,8 @@ export default async function DashboardPage() {
               <h2 className="font-semibold text-white">Mi Perfil</h2>
             </div>
             <p className="text-slate-400 text-sm">Email: {user.email}</p>
-            <p className="text-slate-400 text-sm">Rol: {profile?.role ?? 'user'}</p>
+            <p className="text-slate-400 text-sm">Tipo: {profile?.user_type ?? 'usuario'}</p>
+            <p className="text-slate-400 text-sm">Rol: {profile?.role ?? 'Sin Rol'}</p>
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
