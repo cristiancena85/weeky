@@ -20,7 +20,9 @@ export default function UserFormModal({ user, roles, onClose, onSuccess }: UserF
   const [formData, setFormData] = useState({
     email: user?.email || '',
     password: '',
-    full_name: user?.full_name || '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    alias: user?.alias || '',
     user_type: user?.user_type || 'usuario',
     role: user?.role || ''
   })
@@ -85,15 +87,39 @@ export default function UserFormModal({ user, roles, onClose, onSuccess }: UserF
               />
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre</label>
+              <input
+                type="text"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors"
+                placeholder="Ej: Juan"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Apellido</label>
+              <input
+                type="text"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors"
+                placeholder="Ej: Pérez"
+              />
+            </div>
+
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre Completo</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Alias (Obligatorio)</label>
               <input
                 type="text"
                 required
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                value={formData.alias}
+                onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
                 className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors"
+                placeholder="Ej: juanp"
               />
+              <p className="text-[10px] text-slate-400">Este será el nombre visible para otros colaboradores.</p>
             </div>
 
             {!isEdit && (
