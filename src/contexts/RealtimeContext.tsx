@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { logUserActivity } from '@/app/actions/activity'
 
 interface OnlineUser {
   user_id: string
@@ -23,6 +24,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null)
   const supabase = createClient()
   const channelRef = useRef<any>(null)
+  const lastUsersRef = useRef<OnlineUser[]>([])
 
   // 1. Escuchar cambios de sesión y guardarlos en el estado local
   useEffect(() => {
@@ -90,6 +92,28 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           }
         })
 
+        // Lógica para registrar desconexiones
+        if (user) {
+          const usersWhoLeft = lastUsersRef.current.filter(
+            oldU => !users.find(u => u.user_id === oldU.user_id) && oldU.user_id !== user.id
+          )
+
+          if (usersWhoLeft.length > 0 && users.length > 0) {
+            // Elegimos un "líder" para evitar duplicados (el UID más bajo)
+            const leader = users.reduce((prev, curr) => 
+              curr.user_id < prev.user_id ? curr : prev
+            )
+
+            if (leader.user_id === user.id) {
+              usersWhoLeft.forEach(u => {
+                console.log(`[RealtimeProvider] Líder detectó desconexión de: ${u.email}`)
+                logUserActivity(u.user_id, u.email, 'disconnect')
+              })
+            }
+          }
+        }
+        lastUsersRef.current = users
+
         console.log(`[RealtimeProvider] Sincronizados ${users.length} colaboradores.`)
         setOnlineUsers(users.sort((a, b) => new Date(b.online_at).getTime() - new Date(a.online_at).getTime()))
       }
@@ -121,6 +145,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (channelRef.current) {
         console.log('[RealtimeProvider] Limpiando canal al desmontar/cambiar sesión.')
+        // Intento de log de desconexión propia (best effort)
+        if (session?.user) {
+          logUserActivity(session.user.id, session.user.email, 'disconnect')
+        }
         supabase.removeChannel(channelRef.current)
         channelRef.current = null
       }
