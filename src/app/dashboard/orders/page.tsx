@@ -50,12 +50,12 @@ export default async function OrdersPage() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
-                <ArrowLeft className="w-4 h-4" /> Volver
+                <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Volver</span>
               </Link>
               <div className="h-6 w-px bg-slate-200 dark:bg-white/10"></div>
-              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-lg italic">
-                <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                Semana Actual: <span className="text-purple-600 dark:text-purple-400">
+              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm sm:text-lg italic">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+                <span className="hidden sm:inline">Semana Actual:</span> <span className="text-purple-600 dark:text-purple-400">
                   {cycle ? new Date(cycle.start_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : 'Sin iniciar'}
                 </span>
                 {cycle?.status === 'activo' && (

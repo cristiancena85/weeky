@@ -36,20 +36,22 @@ export default async function DashboardPage() {
 
           <div className="flex items-center gap-2 sm:gap-4">
             {profile?.user_type === 'administrador' && (
-              <div className="hidden md:flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 <Link 
                   href="/dashboard/catalog"
-                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                  title="Catálogo"
                 >
-                  <Package className="w-4 h-4" />
-                  Catálogo
+                  <Package className="w-5 h-5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Catálogo</span>
                 </Link>
                 <Link 
                   href="/dashboard/users"
-                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                  title="Usuarios"
                 >
-                  <Users className="w-4 h-4" />
-                  Usuarios
+                  <Users className="w-5 h-5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Usuarios</span>
                 </Link>
               </div>
             )}

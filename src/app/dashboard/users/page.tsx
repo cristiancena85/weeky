@@ -44,7 +44,7 @@ export default async function UsersManagementPage() {
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10">
-                  <ArrowLeft className="w-4 h-4" /> Volver
+                  <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Volver</span>
                 </Link>
                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10"></div>
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
