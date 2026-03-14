@@ -41,16 +41,16 @@ export default function RoleFormModal({ role, onClose, onSuccess }: RoleFormModa
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-900 border border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col max-h-[calc(100vh-2rem)] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col max-h-[calc(100vh-2rem)] overflow-y-auto transition-colors">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-bold text-white mb-6 pr-8 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-purple-400" />
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 pr-8 flex items-center gap-2">
+          <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           {isEdit ? 'Editar Rol' : 'Crear Nuevo Rol'}
         </h2>
 
@@ -62,7 +62,7 @@ export default function RoleFormModal({ role, onClose, onSuccess }: RoleFormModa
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Nombre o Título del Puesto
             </label>
             <input
@@ -71,7 +71,7 @@ export default function RoleFormModal({ role, onClose, onSuccess }: RoleFormModa
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="vendedor senior"
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-colors"
             />
           </div>
 
@@ -80,7 +80,7 @@ export default function RoleFormModal({ role, onClose, onSuccess }: RoleFormModa
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
             >
               Cancelar
             </button>
