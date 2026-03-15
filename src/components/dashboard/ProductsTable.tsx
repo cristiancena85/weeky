@@ -91,20 +91,34 @@ export default function ProductsTable({ initialProducts }: { initialProducts: Pr
                     </div>
                     <div>
                       <div className="text-slate-900 dark:text-white font-medium">{p.name}</div>
-                      <div className="text-xs text-slate-400 uppercase tracking-tighter">SKU: {p.sku || 'N/A'}</div>
+                      <div className="text-xs text-slate-400 font-medium">
+                        {p.category?.name || 'General'} 
+                        {p.brand ? ` • ${p.brand}` : ''}
+                        {p.type ? ` • ${p.type}` : ''}
+                      </div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-tighter mt-0.5">SKU: {p.sku || 'N/A'}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                    <Layers className="w-4 h-4 text-purple-500" />
-                    <span>1 {Object.keys(p.conversions)[0] || 'Unidad'} = </span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
-                      {Object.values(p.conversions)[0] || 1} {p.base_unit}s
-                    </span>
+                  <div className="flex flex-col gap-1 text-sm text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-purple-500" />
+                      {p.units && p.units.length > 0 ? (
+                        <>
+                          <span className="font-medium text-slate-900 dark:text-white">{p.units[0].unit_name}</span>
+                          <span className="text-slate-400">=</span>
+                          <span className="font-bold text-purple-600 dark:text-purple-400">
+                            {p.units[0].conversion_factor} {p.base_unit}s
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400 italic">Unidad base: {p.base_unit}</span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-[10px] text-slate-400 mt-1">
-                    {Object.entries(p.conversions).length > 1 && `+ ${Object.entries(p.conversions).length - 1} más`}
+                    {p.units && p.units.length > 1 && `+ ${p.units.length - 1} sub-unidades`}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-center relative">

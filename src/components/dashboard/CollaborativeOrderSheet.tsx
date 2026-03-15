@@ -58,7 +58,8 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
         const p = products.find(prod => prod.id === productId)!
         let totalUnits = data.val
         if (data.unit !== p.base_unit) {
-          totalUnits = data.val * (p.conversions[data.unit] || 1)
+          const unitData = p.units?.find(u => u.unit_name === data.unit)
+          totalUnits = data.val * (unitData?.conversion_factor || 1)
         }
         return {
           product_id: productId,
@@ -148,8 +149,8 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
                       className="bg-purple-100 dark:bg-purple-900/30 border-none rounded text-[10px] font-black text-purple-700 dark:text-purple-300 p-1 focus:ring-0 cursor-pointer"
                     >
                       <option value={p.base_unit}>{p.base_unit[0].toUpperCase()}</option>
-                      {Object.keys(p.conversions).map(u => (
-                        <option key={u} value={u}>{u[0].toUpperCase()}</option>
+                      {p.units?.map(u => (
+                        <option key={u.id || u.unit_name} value={u.unit_name}>{u.unit_name[0].toUpperCase()}</option>
                       ))}
                     </select>
                   </div>

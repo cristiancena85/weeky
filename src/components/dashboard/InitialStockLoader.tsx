@@ -29,7 +29,8 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
         const entry = quantities[p.id]
         let totalUnits = entry.val
         if (entry.unit !== p.base_unit) {
-          const factor = p.conversions[entry.unit] || 1
+          const unitData = p.units?.find(u => u.unit_name === entry.unit)
+          const factor = unitData?.conversion_factor || 1
           totalUnits = entry.val * factor
         }
         return { productId: p.id, quantity: totalUnits }
@@ -99,8 +100,8 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
                 className="bg-white dark:bg-white/10 border-none rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 focus:ring-0 cursor-pointer"
               >
                 <option value={p.base_unit} className="bg-white dark:bg-slate-900">{p.base_unit}</option>
-                {Object.keys(p.conversions).map(unit => (
-                  <option key={unit} value={unit} className="bg-white dark:bg-slate-900">{unit}</option>
+                {p.units?.map(unit => (
+                  <option key={unit.id || unit.unit_name} value={unit.unit_name} className="bg-white dark:bg-slate-900">{unit.unit_name}</option>
                 ))}
               </select>
             </div>
@@ -111,7 +112,7 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
                  {quantities[p.id].unit !== p.base_unit ? (
                   <>
                     <span className="text-purple-600 dark:text-purple-400 font-bold">
-                      {quantities[p.id].val * (p.conversions[quantities[p.id].unit] || 1)}
+                      {quantities[p.id].val * (p.units?.find(u => u.unit_name === quantities[p.id].unit)?.conversion_factor || 1)}
                     </span>
                     <span>{p.base_unit}</span>
                   </>
