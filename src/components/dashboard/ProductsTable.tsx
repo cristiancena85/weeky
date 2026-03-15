@@ -106,7 +106,12 @@ export default function ProductsTable({ initialProducts, initialTemplates }: { i
                       <Layers className="w-4 h-4 text-purple-500" />
                       {p.template?.units && p.template.units.length > 0 ? (
                         <>
-                          <span className="font-medium text-slate-900 dark:text-white">{p.template.units[0].unit_name}</span>
+                          <span 
+                            className="font-medium text-slate-900 dark:text-white cursor-help"
+                            title={p.template.units[0].description || ''}
+                          >
+                            {p.template.units[0].unit_name}
+                          </span>
                           <span className="text-slate-400">=</span>
                           <span className="font-bold text-purple-600 dark:text-purple-400">
                             {p.template.units[0].conversion_factor} {p.template.base_unit}s

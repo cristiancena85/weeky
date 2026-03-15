@@ -151,9 +151,11 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
                       onChange={(e) => handleAddToCart(p.id, cart[p.id]?.val || 0, e.target.value)}
                       className="bg-purple-100 dark:bg-purple-900/30 border-none rounded text-[10px] font-black text-purple-700 dark:text-purple-300 p-1 focus:ring-0 cursor-pointer"
                     >
-                      <option value={baseUnit}>{baseUnit[0].toUpperCase()}</option>
+                      <option value={baseUnit} title={`1 unidad o ${baseUnit}`}>{baseUnit[0].toUpperCase()}</option>
                       {p.template?.units?.map(u => (
-                        <option key={u.id || u.unit_name} value={u.unit_name}>{u.unit_name[0].toUpperCase()}</option>
+                        <option key={u.id || u.unit_name} value={u.unit_name} title={u.description || u.unit_name}>
+                          {u.unit_name[0].toUpperCase()}
+                        </option>
                       ))}
                     </select>
                   </div>

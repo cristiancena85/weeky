@@ -15,6 +15,7 @@ export type TemplateUnit = {
   unit_name: string
   conversion_factor: number
   hierarchy_level: number
+  description?: string | null
 }
 
 export type UnitTemplate = {

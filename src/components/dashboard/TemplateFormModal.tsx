@@ -109,23 +109,24 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
 
               <div className="space-y-3">
                 <div className="hidden sm:grid grid-cols-12 gap-2 px-2 text-[10px] font-bold text-slate-400 uppercase">
-                  <div className="col-span-5">Nombre Unidad</div>
-                  <div className="col-span-6">Equivale a (Cant. de {baseUnit}s)</div>
+                  <div className="col-span-4">Nombre Unidad</div>
+                  <div className="col-span-3">Equivale a</div>
+                  <div className="col-span-4">Descripción</div>
                   <div className="col-span-1"></div>
                 </div>
                 {units.map((unit, idx) => (
                   <div key={idx} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-center bg-white dark:bg-black/20 p-2 sm:p-0 rounded-lg border sm:border-0 border-slate-200 dark:border-white/5">
-                    <div className="w-full sm:col-span-5 flex items-center gap-2">
+                    <div className="w-full sm:col-span-4 flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-400 w-4">{idx}</span>
                       <input
                         required
-                        placeholder="Ej. Pallet, Caja..."
+                        placeholder="Ej. Pallet..."
                         value={unit.unit_name}
                         onChange={(e) => handleUpdateUnit(idx, 'unit_name', e.target.value)}
                         className="flex-1 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-2 py-1 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
                       />
                     </div>
-                    <div className="w-full sm:col-span-6 flex items-center gap-2">
+                    <div className="w-full sm:col-span-3 flex items-center gap-1">
                       <span className="text-xs text-slate-500">=</span>
                       <input
                         required
@@ -133,9 +134,17 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
                         min="1"
                         value={unit.conversion_factor || ''}
                         onChange={(e) => handleUpdateUnit(idx, 'conversion_factor', Number(e.target.value))}
-                        className="w-24 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-2 py-1 text-sm font-mono text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 text-right"
+                        className="w-16 sm:w-20 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-1 py-1 text-sm font-mono text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 text-right"
                       />
-                      <span className="text-xs text-slate-500 truncate max-w-[80px]">{baseUnit}s</span>
+                      <span className="text-xs text-slate-500 truncate">{baseUnit}s</span>
+                    </div>
+                    <div className="w-full sm:col-span-4 flex items-center">
+                      <input
+                        placeholder="Ej. 60 cajas..."
+                        value={unit.description || ''}
+                        onChange={(e) => handleUpdateUnit(idx, 'description', e.target.value)}
+                        className="w-full bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-2 py-1 text-[11px] text-slate-600 dark:text-slate-400 focus:outline-none focus:border-purple-500"
+                      />
                     </div>
                     <div className="col-span-1 flex justify-end w-full sm:w-auto">
                       <button type="button" onClick={() => handleRemoveUnit(idx)} className="text-red-400 hover:text-red-600 p-1 bg-red-50 dark:bg-red-900/20 rounded">
@@ -144,6 +153,7 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
                     </div>
                   </div>
                 ))}
+
                 
                 <button 
                   type="button" 
