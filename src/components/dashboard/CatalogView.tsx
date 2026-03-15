@@ -64,7 +64,10 @@ export default function CatalogView({
           }`}
         >
           <Users className="w-5 h-5" />
-          Cuentas
+          <div className="flex flex-col items-start leading-tight">
+            <span>Cuentas</span>
+            <span className="text-[10px] opacity-70 font-normal">operadores</span>
+          </div>
         </button>
         <button
           onClick={() => setActiveTab('branches')}
