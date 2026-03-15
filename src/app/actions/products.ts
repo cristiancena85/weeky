@@ -172,10 +172,13 @@ export async function createTemplate(
   if (templateError) throw new Error(templateError.message)
 
   if (unitsData.length > 0) {
-    const unitsToInsert = unitsData.map(u => ({
-      ...u,
-      template_id: newTemplate.id
-    }))
+    const unitsToInsert = unitsData.map(u => {
+      const { id, ...rest } = u
+      return {
+        ...rest,
+        template_id: newTemplate.id
+      }
+    })
     
     const { error: unitsError } = await supabase
       .from('template_units')
@@ -205,11 +208,13 @@ export async function updateTemplate(
 
   await supabase.from('template_units').delete().eq('template_id', id)
   if (unitsData.length > 0) {
-    const unitsToInsert = unitsData.map(u => ({
-      ...u,
-      template_id: id,
-      id: undefined
-    }))
+    const unitsToInsert = unitsData.map(u => {
+      const { id: unitId, ...rest } = u
+      return {
+        ...rest,
+        template_id: id
+      }
+    })
     const { error: unitsError } = await supabase.from('template_units').insert(unitsToInsert)
     if (unitsError) throw new Error(unitsError.message)
   }
