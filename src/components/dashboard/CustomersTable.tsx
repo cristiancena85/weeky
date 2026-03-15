@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Customer, deleteCustomer, getCustomers } from '@/app/actions/customers'
-import { MoreVertical, Edit2, Trash2, Plus, Search, UserCircle } from 'lucide-react'
+import { MoreVertical, Edit2, Trash2, Plus, Search, UserCircle, Truck, Store } from 'lucide-react'
 import { toast } from 'sonner'
 import CustomerFormModal from './CustomerFormModal'
 
 export default function CustomersTable({ initialCustomers }: { initialCustomers: Customer[] }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers)
   const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState<'all' | 'cliente' | 'vendedor'>('all')
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
