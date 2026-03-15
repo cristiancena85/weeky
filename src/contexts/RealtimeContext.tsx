@@ -122,8 +122,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
       channel
         .on('presence', { event: 'sync' }, syncUsers)
-        .on('presence', { event: 'join' }, syncUsers)
-        .on('presence', { event: 'leave' }, syncUsers)
         .subscribe(async (status) => {
           console.log(`[RealtimeProvider] Estado del canal: ${status}`)
           if (status === 'SUBSCRIBED') {

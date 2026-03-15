@@ -102,15 +102,23 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
                 onChange={(e) => handleUpdate(p.id, quantities[p.id].val, e.target.value)}
                 className="bg-white dark:bg-white/10 border-none rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 focus:ring-0 cursor-pointer"
               >
-                <option value={baseUnit} className="bg-white dark:bg-slate-900">{baseUnit}</option>
+                <option value={baseUnit} className="bg-white dark:bg-slate-900" title={`1 unidad o ${baseUnit}`}>{baseUnit}</option>
                 {p.template?.units?.map(unit => (
-                  <option key={unit.id || unit.unit_name} value={unit.unit_name} className="bg-white dark:bg-slate-900">{unit.unit_name}</option>
+                  <option key={unit.id || unit.unit_name} value={unit.unit_name} className="bg-white dark:bg-slate-900" title={unit.description || unit.unit_name}>{unit.unit_name}</option>
                 ))}
               </select>
             </div>
             
             <div className="mt-2 flex items-center justify-between px-1">
-               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Equivale a:</span>
+               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+                 Equivale a:
+                 {quantities[p.id].unit !== baseUnit && (
+                   <span className="text-[9px] lowercase font-normal italic">
+                     ({p.template?.units?.find(u => u.unit_name === quantities[p.id].unit)?.description || ''})
+                   </span>
+                 )}
+               </span>
+
                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
                  {quantities[p.id].unit !== baseUnit ? (
                   <>
