@@ -33,10 +33,12 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
     setShowModal(true)
   }
 
-  const filtered = customers.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.address?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = customers.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
+                         c.address?.toLowerCase().includes(search.toLowerCase())
+    const matchesType = filterType === 'all' || c.type === filterType
+    return matchesSearch && matchesType
+  })
 
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`¿Eliminar cliente "${name}"?`)) {
@@ -57,11 +59,32 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar clientes..."
+            placeholder="Buscar..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+            className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
           />
+        </div>
+        
+        <div className="flex bg-slate-100 dark:bg-black/30 p-1 rounded-xl border border-slate-200 dark:border-white/5 w-full sm:w-auto">
+          <button 
+            onClick={() => setFilterType('all')}
+            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-white dark:bg-white/10 shadow-sm text-purple-600 dark:text-purple-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+          >
+            Todos
+          </button>
+          <button 
+            onClick={() => setFilterType('cliente')}
+            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === 'cliente' ? 'bg-white dark:bg-white/10 shadow-sm text-purple-600 dark:text-purple-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+          >
+            Clientes
+          </button>
+          <button 
+            onClick={() => setFilterType('vendedor')}
+            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === 'vendedor' ? 'bg-white dark:bg-white/10 shadow-sm text-purple-600 dark:text-purple-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+          >
+            Vendedores
+          </button>
         </div>
         <button 
           onClick={handleAdd}
@@ -76,7 +99,8 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 text-sm bg-slate-50 dark:bg-black/10">
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Cliente</th>
+              <th className="px-6 py-4 font-medium uppercase tracking-wider">Nombre</th>
+              <th className="px-6 py-4 font-medium uppercase tracking-wider">Tipo</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider">Dirección / Tel</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider w-20 text-center">Gestión</th>
             </tr>
@@ -86,9 +110,20 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
               <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <UserCircle className="w-8 h-8 text-slate-300 dark:text-slate-700" />
-                    <span className="text-slate-900 dark:text-white font-medium">{c.name}</span>
+                    <div className={`p-2 rounded-xl ${c.type === 'vendedor' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' : 'bg-green-100 dark:bg-green-900/30 text-green-600'}`}>
+                      {c.type === 'vendedor' ? <Truck className="w-5 h-5" /> : <Store className="w-5 h-5" />}
+                    </div>
+                    <span className="text-slate-900 dark:text-white font-bold">{c.name}</span>
                   </div>
+                </td>
+                <td className="px-6 py-4">
+                   <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                     c.type === 'vendedor' 
+                     ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-400/10 dark:border-blue-400/20' 
+                     : 'bg-green-50 text-green-600 border-green-200 dark:bg-green-400/10 dark:border-green-400/20'
+                   }`}>
+                     {c.type}
+                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-slate-600 dark:text-slate-400">{c.address || 'Sin dirección'}</div>

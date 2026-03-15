@@ -110,7 +110,7 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej. Cigarrillos Marlb. Box 20"
+                  placeholder="Ej. Cigarrillos Dolch. Box 20"
                   className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
                   <input
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
-                    placeholder="Ej. Marlboro"
+                    placeholder="Ej. Dolchester"
                     className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
@@ -141,11 +141,11 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Escudo</label>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Acrónimo</label>
                   <input
                     value={shield}
                     onChange={(e) => setShield(e.target.value)}
-                    placeholder="Ej. Sin escudo"
+                    placeholder="Ej. DCH"
                     className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>

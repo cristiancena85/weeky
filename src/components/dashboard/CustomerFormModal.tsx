@@ -16,19 +16,20 @@ export default function CustomerFormModal({ customer, onClose, onSuccess }: Cust
   const [name, setName] = useState(customer?.name || '')
   const [address, setAddress] = useState(customer?.address || '')
   const [phone, setPhone] = useState(customer?.phone || '')
+  const [type, setType] = useState<'cliente' | 'vendedor'>(customer?.type || 'cliente')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const data = { name, address, phone }
+      const data = { name, address, phone, type }
       if (customer) {
         await updateCustomer(customer.id, data)
-        toast.success('Cliente actualizado')
+        toast.success(type === 'cliente' ? 'Cliente actualizado' : 'Vendedor actualizado')
       } else {
         await createCustomer(data)
-        toast.success('Cliente creado')
+        toast.success(type === 'cliente' ? 'Cliente creado' : 'Vendedor creado')
       }
       onSuccess()
     } catch (err: any) {
@@ -85,6 +86,20 @@ export default function CustomerFormModal({ customer, onClose, onSuccess }: Cust
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
+              Tipo de Registro
+            </label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as 'cliente' | 'vendedor')}
+              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-bold text-purple-600 dark:text-purple-400"
+            >
+              <option value="cliente">Cliente (Preventa)</option>
+              <option value="vendedor">Vendedor (Distribución/Stock)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
               Teléfono de Contacto
             </label>
             <div className="relative">
@@ -112,7 +127,7 @@ export default function CustomerFormModal({ customer, onClose, onSuccess }: Cust
               className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 font-medium disabled:opacity-50 transition-all"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Guardando...' : customer ? 'Actualizar' : 'Crear Cliente'}
+              {loading ? 'Guardando...' : customer ? 'Actualizar' : (type === 'cliente' ? 'Crear Cliente' : 'Crear Vendedor')}
             </button>
           </div>
         </form>

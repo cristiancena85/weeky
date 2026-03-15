@@ -9,6 +9,7 @@ export type Customer = {
   name: string
   address: string | null
   phone: string | null
+  type: 'cliente' | 'vendedor'
   created_at: string
 }
 
