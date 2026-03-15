@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Package, ArrowLeft, PlusCircle, AlertCircle, Calendar } from 'lucide-react'
+import { Package, ArrowLeft, PlusCircle, AlertCircle, Calendar, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { getCurrentCycle, openNewCycle, closeCycle, getStockReport } from '@/app/actions/inventory'
 import { getProducts } from '@/app/actions/products'
@@ -51,6 +51,14 @@ export default async function OrdersPage() {
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
                 <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Volver</span>
+              </Link>
+              <Link 
+                href="/dashboard/orders"
+                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 bg-purple-50 dark:bg-purple-900/10"
+                title="Pedidos Semanales"
+              >
+                <ShoppingCart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <span className="hidden sm:inline font-bold">Pedidos</span>
               </Link>
               <div className="h-6 w-px bg-slate-200 dark:bg-white/10"></div>
               <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm sm:text-lg italic">
