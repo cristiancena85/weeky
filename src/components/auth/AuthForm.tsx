@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, LogIn, Mail, Lock, AlertCircle } from 'lucide-react'
-import { logUserActivity } from '@/app/actions/activity'
 
 export default function AuthForm() {
   const [email, setEmail] = useState('')
@@ -22,10 +21,6 @@ export default function AuthForm() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       
-      if (data.user) {
-        await logUserActivity(data.user.id, data.user.email || '', 'login')
-      }
-
       // La redirección la maneja el middleware automáticamente
       window.location.href = '/dashboard'
     } catch (err: unknown) {

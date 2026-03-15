@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { LogOut, Loader2 } from 'lucide-react'
-import { logUserActivity } from '@/app/actions/activity'
 
 export function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -16,12 +15,6 @@ export function LogoutButton() {
     console.log('[LogoutButton] Instant logout triggered')
 
     try {
-      // Registrar actividad antes de salir
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await logUserActivity(user.id, user.email || '', 'logout')
-      }
-
       // 1. Cierre de sesión técnico (rápido y local)
       await supabase.auth.signOut({ scope: 'local' })
     } catch (err) {

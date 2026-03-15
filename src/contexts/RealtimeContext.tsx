@@ -25,6 +25,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const channelRef = useRef<any>(null)
   const lastUsersRef = useRef<OnlineUser[]>([])
+  const hasLoggedConnectRef = useRef(false)
 
   // 1. Escuchar cambios de sesión y guardarlos en el estado local
   useEffect(() => {
@@ -92,19 +93,14 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           }
         })
 
-        // Lógica para registrar desconexiones y conexiones
+        // Lógica para registrar desconexiones (EL LÍDER registra a los demás)
         if (user) {
           // Detectar quiénes se fueron
           const usersWhoLeft = lastUsersRef.current.filter(
             oldU => !users.find(u => u.user_id === oldU.user_id) && oldU.user_id !== user.id
           )
 
-          // Detectar quiénes llegaron (excluyendo al usuario actual para evitar duplicados del subscribe)
-          const usersWhoJoined = users.filter(
-            u => !lastUsersRef.current.find(oldU => oldU.user_id === u.user_id) && u.user_id !== user.id
-          )
-
-          if ((usersWhoLeft.length > 0 || usersWhoJoined.length > 0) && users.length > 0) {
+          if (usersWhoLeft.length > 0 && users.length > 0) {
             // Elegimos un "líder" para evitar duplicados (el UID más bajo)
             const leader = users.reduce((prev, curr) => 
               curr.user_id < prev.user_id ? curr : prev
@@ -114,10 +110,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
               usersWhoLeft.forEach(u => {
                 console.log(`[RealtimeProvider] Líder detectó desconexión de: ${u.email}`)
                 logUserActivity(u.user_id, u.email, 'disconnect')
-              })
-              usersWhoJoined.forEach(u => {
-                console.log(`[RealtimeProvider] Líder detectó conexión de: ${u.email}`)
-                logUserActivity(u.user_id, u.email, 'connect')
               })
             }
           }
@@ -136,8 +128,12 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           console.log(`[RealtimeProvider] Estado del canal: ${status}`)
           if (status === 'SUBSCRIBED') {
             setConnected(true)
-            // Log de conexión propia
-            logUserActivity(user.id, user.email || '', 'connect')
+            
+            // Cada usuario registra su propia conexión una sola vez al montar
+            if (!hasLoggedConnectRef.current) {
+              hasLoggedConnectRef.current = true
+              logUserActivity(user.id, user.email || '', 'connect')
+            }
             
             await channel.track({
               user_id: user.id,
@@ -158,8 +154,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (channelRef.current) {
         console.log('[RealtimeProvider] Limpiando canal al desmontar/cambiar sesión.')
-        // Intento de log de desconexión propia (best effort)
-        if (session?.user) {
+        // Solo registro mi propia desconexión si estoy solo.
+        // Si hay otros conectados, el líder se encargará de mi log de salida.
+        if (session?.user && lastUsersRef.current.length <= 1) {
           logUserActivity(session.user.id, session.user.email, 'disconnect')
         }
         supabase.removeChannel(channelRef.current)
