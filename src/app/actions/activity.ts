@@ -2,13 +2,15 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export async function logUserActivity(userId: string, email: string, activity: 'login' | 'logout' | 'disconnect') {
+export async function logUserActivity(userId: string, email: string, activity: 'login' | 'logout' | 'disconnect' | 'connect') {
   const supabase = await createAdminClient()
   
   const message = activity === 'login' 
     ? `${email} ha iniciado sesión` 
     : activity === 'logout'
     ? `${email} ha cerrado la sesión`
+    : activity === 'connect'
+    ? `${email} se ha conectado`
     : `${email} se ha desconectado`
 
   console.log(`[ActivityLog] Intentando registrar: ${message} para ${userId}`)

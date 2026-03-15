@@ -92,13 +92,19 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           }
         })
 
-        // Lógica para registrar desconexiones
+        // Lógica para registrar desconexiones y conexiones
         if (user) {
+          // Detectar quiénes se fueron
           const usersWhoLeft = lastUsersRef.current.filter(
             oldU => !users.find(u => u.user_id === oldU.user_id) && oldU.user_id !== user.id
           )
 
-          if (usersWhoLeft.length > 0 && users.length > 0) {
+          // Detectar quiénes llegaron (excluyendo al usuario actual para evitar duplicados del subscribe)
+          const usersWhoJoined = users.filter(
+            u => !lastUsersRef.current.find(oldU => oldU.user_id === u.user_id) && u.user_id !== user.id
+          )
+
+          if ((usersWhoLeft.length > 0 || usersWhoJoined.length > 0) && users.length > 0) {
             // Elegimos un "líder" para evitar duplicados (el UID más bajo)
             const leader = users.reduce((prev, curr) => 
               curr.user_id < prev.user_id ? curr : prev
@@ -108,6 +114,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
               usersWhoLeft.forEach(u => {
                 console.log(`[RealtimeProvider] Líder detectó desconexión de: ${u.email}`)
                 logUserActivity(u.user_id, u.email, 'disconnect')
+              })
+              usersWhoJoined.forEach(u => {
+                console.log(`[RealtimeProvider] Líder detectó conexión de: ${u.email}`)
+                logUserActivity(u.user_id, u.email, 'connect')
               })
             }
           }
@@ -126,6 +136,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           console.log(`[RealtimeProvider] Estado del canal: ${status}`)
           if (status === 'SUBSCRIBED') {
             setConnected(true)
+            // Log de conexión propia
+            logUserActivity(user.id, user.email || '', 'connect')
+            
             await channel.track({
               user_id: user.id,
               email: user.email,
