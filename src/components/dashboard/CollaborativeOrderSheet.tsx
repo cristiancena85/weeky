@@ -57,8 +57,9 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
       .map(([productId, data]) => {
         const p = products.find(prod => prod.id === productId)!
         let totalUnits = data.val
-        if (data.unit !== p.base_unit) {
-          const unitData = p.units?.find(u => u.unit_name === data.unit)
+        const baseUnit = p.template?.base_unit || 'unidades'
+        if (data.unit !== baseUnit) {
+          const unitData = p.template?.units?.find(u => u.unit_name === data.unit)
           totalUnits = data.val * (unitData?.conversion_factor || 1)
         }
         return {
@@ -128,11 +129,13 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
             </div>
 
             <div className="max-h-[400px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-              {products.map(p => (
+              {products.map(p => {
+                const baseUnit = p.template?.base_unit || 'unidades'
+                return (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-100 dark:border-white/5 group hover:border-purple-500/30 transition-all">
                   <div className="flex-1 min-w-0 pr-2">
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
-                    <p className="text-[10px] text-slate-400 italic">Unidad: {p.base_unit}</p>
+                    <p className="text-[10px] text-slate-400 italic">Unidad: {baseUnit}</p>
                   </div>
                   <div className="flex gap-2 items-center bg-white dark:bg-black/40 rounded-lg p-1 border dark:border-white/10 shadow-sm">
                     <input 
@@ -140,22 +143,22 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
                       min="0"
                       placeholder="0"
                       value={cart[p.id]?.val || ''}
-                      onChange={(e) => handleAddToCart(p.id, Number(e.target.value), cart[p.id]?.unit || p.base_unit)}
+                      onChange={(e) => handleAddToCart(p.id, Number(e.target.value), cart[p.id]?.unit || baseUnit)}
                       className="w-14 bg-transparent border-none text-right font-bold text-slate-900 dark:text-white p-0 focus:ring-0 text-sm"
                     />
                     <select 
-                      value={cart[p.id]?.unit || p.base_unit}
+                      value={cart[p.id]?.unit || baseUnit}
                       onChange={(e) => handleAddToCart(p.id, cart[p.id]?.val || 0, e.target.value)}
                       className="bg-purple-100 dark:bg-purple-900/30 border-none rounded text-[10px] font-black text-purple-700 dark:text-purple-300 p-1 focus:ring-0 cursor-pointer"
                     >
-                      <option value={p.base_unit}>{p.base_unit[0].toUpperCase()}</option>
-                      {p.units?.map(u => (
+                      <option value={baseUnit}>{baseUnit[0].toUpperCase()}</option>
+                      {p.template?.units?.map(u => (
                         <option key={u.id || u.unit_name} value={u.unit_name}>{u.unit_name[0].toUpperCase()}</option>
                       ))}
                     </select>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             <button 

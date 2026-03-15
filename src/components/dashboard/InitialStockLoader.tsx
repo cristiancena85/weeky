@@ -14,7 +14,7 @@ type InitialStockLoaderProps = {
 export default function InitialStockLoader({ cycleId, products }: InitialStockLoaderProps) {
   const [loading, setLoading] = useState(false)
   const [quantities, setQuantities] = useState<Record<string, { val: number, unit: string }>>(
-    products.reduce((acc, p) => ({ ...acc, [p.id]: { val: 0, unit: p.base_unit } }), {})
+    products.reduce((acc, p) => ({ ...acc, [p.id]: { val: 0, unit: p.template?.base_unit || 'unidades' } }), {})
   )
 
   const handleUpdate = (productId: string, val: number, unit: string) => {
@@ -28,8 +28,9 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
       const stockEntries = products.map(p => {
         const entry = quantities[p.id]
         let totalUnits = entry.val
-        if (entry.unit !== p.base_unit) {
-          const unitData = p.units?.find(u => u.unit_name === entry.unit)
+        const baseUnit = p.template?.base_unit || 'unidades'
+        if (entry.unit !== baseUnit) {
+          const unitData = p.template?.units?.find(u => u.unit_name === entry.unit)
           const factor = unitData?.conversion_factor || 1
           totalUnits = entry.val * factor
         }
@@ -77,7 +78,9 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {products.map((p) => (
+        {products.map((p) => {
+          const baseUnit = p.template?.base_unit || 'unidades'
+          return (
           <div key={p.id} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-5 hover:border-purple-500/50 transition-all group">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
@@ -99,8 +102,8 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
                 onChange={(e) => handleUpdate(p.id, quantities[p.id].val, e.target.value)}
                 className="bg-white dark:bg-white/10 border-none rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 focus:ring-0 cursor-pointer"
               >
-                <option value={p.base_unit} className="bg-white dark:bg-slate-900">{p.base_unit}</option>
-                {p.units?.map(unit => (
+                <option value={baseUnit} className="bg-white dark:bg-slate-900">{baseUnit}</option>
+                {p.template?.units?.map(unit => (
                   <option key={unit.id || unit.unit_name} value={unit.unit_name} className="bg-white dark:bg-slate-900">{unit.unit_name}</option>
                 ))}
               </select>
@@ -109,12 +112,12 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
             <div className="mt-2 flex items-center justify-between px-1">
                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Equivale a:</span>
                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                 {quantities[p.id].unit !== p.base_unit ? (
+                 {quantities[p.id].unit !== baseUnit ? (
                   <>
                     <span className="text-purple-600 dark:text-purple-400 font-bold">
-                      {quantities[p.id].val * (p.units?.find(u => u.unit_name === quantities[p.id].unit)?.conversion_factor || 1)}
+                      {quantities[p.id].val * (p.template?.units?.find(u => u.unit_name === quantities[p.id].unit)?.conversion_factor || 1)}
                     </span>
-                    <span>{p.base_unit}</span>
+                    <span>{baseUnit}</span>
                   </>
                  ) : (
                   <span>---</span>
@@ -122,7 +125,7 @@ export default function InitialStockLoader({ cycleId, products }: InitialStockLo
                </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </div>
   )

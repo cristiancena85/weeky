@@ -1,34 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Save, Plus, Trash2, Layers, Tag, Asterisk } from 'lucide-react'
-import { Product, ProductCategory, ProductUnit, createProduct, updateProduct, getCategories } from '@/app/actions/products'
+import { X, Save, Tag, Layers } from 'lucide-react'
+import { Product, ProductCategory, UnitTemplate, createProduct, updateProduct, getCategories } from '@/app/actions/products'
 import { toast } from 'sonner'
 
 type ProductFormModalProps = {
   product?: Product
+  templates: UnitTemplate[]
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function ProductFormModal({ product, onClose, onSuccess }: ProductFormModalProps) {
+export default function ProductFormModal({ product, templates, onClose, onSuccess }: ProductFormModalProps) {
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<ProductCategory[]>([])
   
   // Basic Fields
   const [name, setName] = useState(product?.name || '')
   const [sku, setSku] = useState(product?.sku || '')
-  const [baseUnit, setBaseUnit] = useState(product?.base_unit || 'unidades')
+  const [unitTemplateId, setUnitTemplateId] = useState(product?.unit_template_id || '')
   const [categoryId, setCategoryId] = useState(product?.category_id || '')
   const [brand, setBrand] = useState(product?.brand || '')
   const [variant, setVariant] = useState(product?.variant || '')
   const [shield, setShield] = useState(product?.shield || '')
   const [type, setType] = useState(product?.type || '')
-
-  // Units
-  const [units, setUnits] = useState<ProductUnit[]>(
-    product?.units?.length ? product.units : []
-  )
 
   useEffect(() => {
     async function loadCategories() {
@@ -45,42 +41,6 @@ export default function ProductFormModal({ product, onClose, onSuccess }: Produc
     loadCategories()
   }, [product])
 
-  const handleAddUnit = () => {
-    setUnits([
-      ...units, 
-      { unit_name: '', conversion_factor: 1, is_base_unit: false, hierarchy_level: units.length }
-    ])
-  }
-
-  const handleUpdateUnit = (index: number, field: keyof ProductUnit, value: any) => {
-    const newUnits = [...units]
-    newUnits[index] = { ...newUnits[index], [field]: value }
-    setUnits(newUnits)
-  }
-
-  const handleRemoveUnit = (index: number) => {
-    setUnits(units.filter((_, i) => i !== index))
-  }
-
-  const applyTemplate = (templateType: 'cigarrillos' | 'papeles') => {
-    if (templateType === 'cigarrillos') {
-      setBaseUnit('cigarrillo')
-      setUnits([
-        { unit_name: 'Pallet', conversion_factor: 300000, is_base_unit: false, hierarchy_level: 0 },
-        { unit_name: 'Caja', conversion_factor: 5000, is_base_unit: false, hierarchy_level: 1 },
-        { unit_name: 'Cartón', conversion_factor: 200, is_base_unit: false, hierarchy_level: 2 },
-        { unit_name: 'Unidad (Atado)', conversion_factor: 20, is_base_unit: false, hierarchy_level: 3 }
-      ])
-    } else {
-      setBaseUnit('hoja')
-      setUnits([
-        { unit_name: 'Caja', conversion_factor: 125000, is_base_unit: false, hierarchy_level: 0 },
-        { unit_name: 'Blister', conversion_factor: 1250, is_base_unit: false, hierarchy_level: 1 },
-        { unit_name: 'Libro', conversion_factor: 50, is_base_unit: false, hierarchy_level: 2 }
-      ])
-    }
-    toast.success('Plantilla de unidades aplicada')
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,7 +50,7 @@ export default function ProductFormModal({ product, onClose, onSuccess }: Produc
       const productData = { 
         name, 
         sku: sku || null, 
-        base_unit: baseUnit, 
+        unit_template_id: unitTemplateId || null, 
         category_id: categoryId || null,
         brand: brand || null,
         variant: variant || null,
@@ -99,10 +59,10 @@ export default function ProductFormModal({ product, onClose, onSuccess }: Produc
       }
 
       if (product) {
-        await updateProduct(product.id, productData, units)
+        await updateProduct(product.id, productData)
         toast.success('Producto actualizado')
       } else {
-        await createProduct(productData, units)
+        await createProduct(productData)
         toast.success('Producto creado')
       }
       onSuccess()
@@ -201,25 +161,15 @@ export default function ProductFormModal({ product, onClose, onSuccess }: Produc
               </div>
             </div>
 
-            {/* Unidades Comerciales */}
+            {/* Unidades Comerciales Vía Plantilla */}
             <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-purple-500" /> Unidades Comerciales
-                </h3>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => applyTemplate('cigarrillos')} className="text-xs bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-white px-2 py-1 rounded">
-                    Plantilla Cigarrillos
-                  </button>
-                  <button type="button" onClick={() => applyTemplate('papeles')} className="text-xs bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-white px-2 py-1 rounded">
-                    Plantilla Papeles
-                  </button>
-                </div>
-              </div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-4">
+                <Layers className="w-4 h-4 text-purple-500" /> Plantilla de Unidad Comercial
+              </h3>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">SKU</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">SKU</label>
                   <input
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
@@ -228,62 +178,19 @@ export default function ProductFormModal({ product, onClose, onSuccess }: Produc
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1 flex items-center gap-1">Unidad Mínima Base <Asterisk className="w-2 h-2 text-red-500" /></label>
-                  <input
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Plantilla</label>
+                  <select
                     required
-                    value={baseUnit}
-                    onChange={(e) => setBaseUnit(e.target.value)}
-                    placeholder="ej. cigarrillo, hoja, unidad"
+                    value={unitTemplateId}
+                    onChange={(e) => setUnitTemplateId(e.target.value)}
                     className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none font-bold text-purple-600 dark:text-purple-400"
-                  />
+                  >
+                    <option value="">Selecciona plantilla...</option>
+                    {templates.map(t => (
+                      <option key={t.id} value={t.id}>{t.name} (Base: {t.base_unit})</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="hidden sm:grid grid-cols-12 gap-2 px-2 text-[10px] font-bold text-slate-400 uppercase">
-                  <div className="col-span-5">Nombre Unidad</div>
-                  <div className="col-span-6">Equivale a (Cant. de {baseUnit}s)</div>
-                  <div className="col-span-1"></div>
-                </div>
-                {units.map((unit, idx) => (
-                  <div key={idx} className="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-center bg-white dark:bg-black/20 p-2 sm:p-0 rounded-lg border sm:border-0 border-slate-200 dark:border-white/5">
-                    <div className="w-full sm:col-span-5 flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 w-4">{idx}</span>
-                      <input
-                        required
-                        placeholder="Ej. Pallet, Caja..."
-                        value={unit.unit_name}
-                        onChange={(e) => handleUpdateUnit(idx, 'unit_name', e.target.value)}
-                        className="flex-1 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-2 py-1 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-                    <div className="w-full sm:col-span-6 flex items-center gap-2">
-                      <span className="text-xs text-slate-500">=</span>
-                      <input
-                        required
-                        type="number"
-                        min="1"
-                        value={unit.conversion_factor || ''}
-                        onChange={(e) => handleUpdateUnit(idx, 'conversion_factor', Number(e.target.value))}
-                        className="w-24 bg-transparent border-b border-dashed border-slate-300 dark:border-slate-700 px-2 py-1 text-sm font-mono text-purple-600 dark:text-purple-400 focus:outline-none focus:border-purple-500 text-right"
-                      />
-                      <span className="text-xs text-slate-500 truncate max-w-[80px]">{baseUnit}s</span>
-                    </div>
-                    <div className="col-span-1 flex justify-end w-full sm:w-auto">
-                      <button type="button" onClick={() => handleRemoveUnit(idx)} className="text-red-400 hover:text-red-600 p-1 bg-red-50 dark:bg-red-900/20 rounded">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                
-                <button 
-                  type="button" 
-                  onClick={handleAddUnit}
-                  className="w-full mt-2 py-2 border-2 border-dashed border-purple-200 dark:border-purple-900/50 rounded-lg text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Agregar Unidad Comercial
-                </button>
               </div>
             </div>
           </form>

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Package, ArrowLeft, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
 import CatalogView from '@/components/dashboard/CatalogView'
-import { getProducts } from '@/app/actions/products'
+import { getProducts, getTemplates } from '@/app/actions/products'
 import { getCustomers } from '@/app/actions/customers'
 import { UserMenu } from '@/components/dashboard/UserMenu'
 
@@ -36,6 +36,7 @@ export default async function CatalogPage() {
 
   const products = await getProducts()
   const customers = await getCustomers()
+  const templates = await getTemplates()
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 pb-10 transition-colors">
@@ -56,7 +57,7 @@ export default async function CatalogPage() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        <CatalogView initialProducts={products} initialCustomers={customers} />
+        <CatalogView initialProducts={products} initialCustomers={customers} initialTemplates={templates} />
       </main>
     </div>
   )
