@@ -53,7 +53,7 @@ export default function CatalogView({ initialProducts, initialCustomers, initial
           }`}
         >
           <Layers className="w-5 h-5" />
-          Plantillas
+          Unidades comerciales
         </button>
       </div>
 

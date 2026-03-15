@@ -18,7 +18,7 @@ export default function TemplatesTable({ initialTemplates }: { initialTemplates:
       const data = await getTemplates()
       setTemplates(data)
     } catch (err: any) {
-      toast.error('Error al recargar plantillas')
+      toast.error('Error al recargar unidades comerciales')
     }
   }
 
@@ -38,11 +38,11 @@ export default function TemplatesTable({ initialTemplates }: { initialTemplates:
   )
 
   const handleDelete = async (id: string, name: string) => {
-    if (confirm(`¿Eliminar plantilla "${name}"? Esto podría afectar a los productos asociados si cascade delete está habilitado.`)) {
+    if (confirm(`¿Eliminar unidad comercial "${name}"? Esto podría afectar a los productos asociados si cascade delete está habilitado.`)) {
       try {
         await deleteTemplate(id)
         setTemplates(templates.filter(t => t.id !== id))
-        toast.success('Plantilla eliminada')
+        toast.success('Unidad comercial eliminada')
       } catch (err: any) {
         toast.error(err.message)
       }
@@ -56,7 +56,7 @@ export default function TemplatesTable({ initialTemplates }: { initialTemplates:
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar plantillas..."
+            placeholder="Buscar unidades comerciales..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium"
@@ -67,7 +67,7 @@ export default function TemplatesTable({ initialTemplates }: { initialTemplates:
           className="w-full sm:w-auto flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 transition-colors text-white px-4 py-2 rounded-lg"
         >
           <Plus className="w-4 h-4" />
-          <span>Nueva Plantilla</span>
+          <span>Nueva Unidad Comercial</span>
         </button>
       </div>
 
@@ -75,8 +75,8 @@ export default function TemplatesTable({ initialTemplates }: { initialTemplates:
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 text-sm bg-slate-50 dark:bg-black/10">
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Plantilla</th>
-              <th className="px-6 py-4 font-medium uppercase tracking-wider">Unidades</th>
+              <th className="px-6 py-4 font-medium uppercase tracking-wider">Unidad Comercial</th>
+              <th className="px-6 py-4 font-medium uppercase tracking-wider">Detalle</th>
               <th className="px-6 py-4 font-medium uppercase tracking-wider w-20 text-center">Gestión</th>
             </tr>
           </thead>

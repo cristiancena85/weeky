@@ -51,10 +51,10 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
 
       if (template) {
         await updateTemplate(template.id, templateData, units)
-        toast.success('Plantilla actualizada')
+        toast.success('Unidad comercial actualizada')
       } else {
         await createTemplate(templateData, units)
-        toast.success('Plantilla creada')
+        toast.success('Unidad comercial creada')
       }
       onSuccess()
     } catch (err: any) {
@@ -70,7 +70,7 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 flex-shrink-0">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Layers className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            {template ? 'Editar Plantilla' : 'Nueva Plantilla'}
+            {template ? 'Editar Unidad Comercial' : 'Nueva Unidad Comercial'}
           </h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
             <X className="w-5 h-5" />
@@ -81,7 +81,7 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
           <form id="template-form" onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre de la Plantilla</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre (Tipo de Unidad)</label>
                 <input
                   required
                   value={name}
@@ -182,7 +182,7 @@ export default function TemplateFormModal({ template, onClose, onSuccess }: Temp
             className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 font-medium disabled:opacity-50 transition-all"
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Guardando...' : template ? 'Guardar Cambios' : 'Crear Plantilla'}
+            {loading ? 'Guardando...' : template ? 'Guardar Cambios' : 'Crear Unidad Comercial'}
           </button>
         </div>
       </div>

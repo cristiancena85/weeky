@@ -161,10 +161,10 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
               </div>
             </div>
 
-            {/* Unidades Comerciales Vía Plantilla */}
+            {/* Unidades Comerciales */}
             <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4">
               <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-4">
-                <Layers className="w-4 h-4 text-purple-500" /> Plantilla de Unidad Comercial
+                <Layers className="w-4 h-4 text-purple-500" /> Unidad comercial (conversión)
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -178,14 +178,14 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Plantilla</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Tipo de Unidad</label>
                   <select
                     required
                     value={unitTemplateId}
                     onChange={(e) => setUnitTemplateId(e.target.value)}
                     className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none font-bold text-purple-600 dark:text-purple-400"
                   >
-                    <option value="">Selecciona plantilla...</option>
+                    <option value="">Selecciona tipo de unidad...</option>
                     {templates.map(t => (
                       <option key={t.id} value={t.id}>{t.name} (Base: {t.base_unit})</option>
                     ))}
