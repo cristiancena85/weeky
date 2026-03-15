@@ -3,27 +3,35 @@
 import { useState } from 'react'
 import { X, Save, UserCircle, MapPin, Phone } from 'lucide-react'
 import { Customer, createCustomer, updateCustomer } from '@/app/actions/customers'
+import { Branch } from '@/app/actions/branches'
 import { toast } from 'sonner'
 
 type CustomerFormModalProps = {
   customer?: Customer
+  branches: Branch[]
   onClose: () => void
   onSuccess: () => void
 }
 
-export default function CustomerFormModal({ customer, onClose, onSuccess }: CustomerFormModalProps) {
+export default function CustomerFormModal({ customer, branches, onClose, onSuccess }: CustomerFormModalProps) {
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState(customer?.name || '')
   const [address, setAddress] = useState(customer?.address || '')
   const [phone, setPhone] = useState(customer?.phone || '')
   const [type, setType] = useState<'cliente' | 'vendedor'>(customer?.type || 'cliente')
+  const [branchId, setBranchId] = useState(customer?.branch_id || '')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const data = { name, address, phone, type }
+      if (!branchId) {
+        toast.error('Debes seleccionar una sucursal')
+        setLoading(false)
+        return
+      }
+      const data = { name, address, phone, type, branch_id: branchId }
       if (customer) {
         await updateCustomer(customer.id, data)
         toast.success(type === 'cliente' ? 'Cliente actualizado' : 'Vendedor actualizado')
@@ -45,7 +53,7 @@ export default function CustomerFormModal({ customer, onClose, onSuccess }: Cust
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <UserCircle className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            {customer ? 'Editar Cliente' : 'Nuevo Cliente'}
+            {customer ? 'Editar Cuenta' : 'Nueva Cuenta'}
           </h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
             <X className="w-5 h-5" />
@@ -95,6 +103,23 @@ export default function CustomerFormModal({ customer, onClose, onSuccess }: Cust
             >
               <option value="cliente">Cliente (Preventa)</option>
               <option value="vendedor">Vendedor (Distribución/Stock)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
+              Sucursal Obligatoria
+            </label>
+            <select
+              required
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-bold"
+            >
+              <option value="">Selecciona una sucursal...</option>
+              {branches.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
             </select>
           </div>
 

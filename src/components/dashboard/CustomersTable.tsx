@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { Customer, deleteCustomer, getCustomers } from '@/app/actions/customers'
+import { Branch } from '@/app/actions/branches'
 import { MoreVertical, Edit2, Trash2, Plus, Search, UserCircle, Truck, Store } from 'lucide-react'
 import { toast } from 'sonner'
 import CustomerFormModal from './CustomerFormModal'
 
-export default function CustomersTable({ initialCustomers }: { initialCustomers: Customer[] }) {
+export default function CustomersTable({ initialCustomers, initialBranches }: { initialCustomers: Customer[], initialBranches: Branch[] }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'cliente' | 'vendedor'>('all')
@@ -19,7 +20,7 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
       const data = await getCustomers()
       setCustomers(data)
     } catch (err: any) {
-      toast.error('Error al recargar clientes')
+      toast.error('Error al recargar cuentas')
     }
   }
 
@@ -46,7 +47,7 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
       try {
         await deleteCustomer(id)
         setCustomers(customers.filter(c => c.id !== id))
-        toast.success('Cliente eliminado')
+        toast.success('Cuenta eliminada')
       } catch (err: any) {
         toast.error(err.message)
       }
@@ -92,7 +93,7 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
           className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 transition-colors text-white px-4 py-2 rounded-lg"
         >
           <Plus className="w-4 h-4" />
-          <span>Añadir Cliente</span>
+          <span>Nueva Cuenta</span>
         </button>
       </div>
 
@@ -127,8 +128,9 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
                    </span>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-slate-600 dark:text-slate-400">{c.address || 'Sin dirección'}</div>
-                  <div className="text-xs text-slate-400">{c.phone || 'Sin teléfono'}</div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400 font-bold">{c.branch?.name || 'Varios'}</div>
+                  <div className="text-[10px] text-slate-400 uppercase">{c.address || 'Sin dirección'}</div>
+                  <div className="text-[10px] text-slate-400">{c.phone || 'Sin teléfono'}</div>
                 </td>
                 <td className="px-6 py-4 text-center relative">
                   <button 
@@ -162,6 +164,7 @@ export default function CustomersTable({ initialCustomers }: { initialCustomers:
       {showModal && (
         <CustomerFormModal
           customer={editingCustomer}
+          branches={initialBranches}
           onClose={() => setShowModal(false)}
           onSuccess={() => {
             setShowModal(false)

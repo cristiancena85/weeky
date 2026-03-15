@@ -4,14 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
-export type Customer = {
+export type Branch = {
   id: string
   name: string
   address: string | null
-  phone: string | null
-  type: 'cliente' | 'vendedor'
-  branch_id: string | null
-  branch?: { name: string }
   created_at: string
 }
 
@@ -31,44 +27,44 @@ async function requireAdmin() {
   }
 }
 
-export async function getCustomers(): Promise<Customer[]> {
+export async function getBranches(): Promise<Branch[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('customers')
-    .select('*, branch:branches(name)')
+    .from('branches')
+    .select('*')
     .order('name', { ascending: true })
 
   if (error) throw new Error(error.message)
   return data || []
 }
 
-export async function createCustomer(data: Omit<Customer, 'id' | 'created_at'>) {
+export async function createBranch(data: Omit<Branch, 'id' | 'created_at'>) {
   await requireAdmin()
   const supabase = await createAdminClient()
   
-  const { error } = await supabase.from('customers').insert(data)
+  const { error } = await supabase.from('branches').insert(data)
   if (error) throw new Error(error.message)
 
   revalidatePath('/dashboard/catalog')
   return { success: true }
 }
 
-export async function updateCustomer(id: string, data: Partial<Customer>) {
+export async function updateBranch(id: string, data: Partial<Branch>) {
   await requireAdmin()
   const supabase = await createAdminClient()
 
-  const { error } = await supabase.from('customers').update(data).eq('id', id)
+  const { error } = await supabase.from('branches').update(data).eq('id', id)
   if (error) throw new Error(error.message)
 
   revalidatePath('/dashboard/catalog')
   return { success: true }
 }
 
-export async function deleteCustomer(id: string) {
+export async function deleteBranch(id: string) {
   await requireAdmin()
   const supabase = await createAdminClient()
 
-  const { error } = await supabase.from('customers').delete().eq('id', id)
+  const { error } = await supabase.from('branches').delete().eq('id', id)
   if (error) throw new Error(error.message)
 
   revalidatePath('/dashboard/catalog')
