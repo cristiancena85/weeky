@@ -45,47 +45,40 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gradient-to-br dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 pb-10 transition-colors">
-      <nav className="border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl sticky top-0 z-40 transition-colors">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
-                <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Volver</span>
-              </Link>
-              <Link 
-                href="/dashboard/orders"
-                className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 bg-purple-50 dark:bg-purple-900/10"
-                title="Pedidos Semanales"
-              >
-                <ShoppingCart className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                <span className="hidden sm:inline font-bold">Pedidos</span>
-              </Link>
-              <div className="h-6 w-px bg-slate-200 dark:bg-white/10"></div>
-              <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm sm:text-lg italic">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
-                <span className="hidden sm:inline">Semana Actual:</span> <span className="text-purple-600 dark:text-purple-400">
-                  {cycle ? new Date(cycle.start_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : 'Sin iniciar'}
-                </span>
-                {cycle?.status === 'activo' && (
-                  <span className="ml-2 text-[10px] bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-black animate-pulse">En curso</span>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {cycle?.status === 'activo' && (profile?.user_type === 'administrador' || profile?.role === 'jefe de deposito') && (
-                <form action={handleCloseWeek}>
-                  <button className="bg-red-500 hover:bg-red-400 text-white text-xs px-4 py-2 rounded-xl transition-all shadow-lg shadow-red-500/20 font-bold">
-                    Cerrar Semana
-                  </button>
-                </form>
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-white/5 p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-purple-100 dark:bg-purple-900/40 rounded-2xl">
+            <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              Gestión Semanal
+              {cycle?.status === 'activo' && (
+                <span className="text-[10px] bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-black animate-pulse">En curso</span>
               )}
-              <UserMenu user={user} profile={profile} />
-            </div>
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-none mt-1">
+              Semana: <span className="text-purple-600 dark:text-purple-400 font-bold">
+                {cycle ? new Date(cycle.start_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin iniciar'}
+              </span>
+            </p>
+          </div>
         </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-10 transition-colors">
+        <div className="flex items-center gap-3">
+          {cycle?.status === 'activo' && (profile?.user_type === 'administrador' || profile?.role === 'jefe de deposito') && (
+            <form action={handleCloseWeek}>
+              <button className="bg-red-500 hover:bg-red-400 text-white text-sm px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-red-500/20 font-bold active:scale-95">
+                Cerrar Semana
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+
+      <main className="transition-colors">
         {!cycle ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/10 rounded-3xl animate-in fade-in zoom-in duration-500 shadow-xl shadow-purple-500/5">
             <div className="p-4 bg-purple-100 dark:bg-purple-900/40 rounded-full mb-6 ring-8 ring-purple-50 dark:ring-purple-950/10">
