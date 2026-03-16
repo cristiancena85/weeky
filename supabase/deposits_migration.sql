@@ -90,36 +90,69 @@ ALTER TABLE public.cargas_ens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.items_carga_ens ENABLE ROW LEVEL SECURITY;
 
 -- Políticas básicas (Select para todos los autenticados)
+DROP POLICY IF EXISTS "Select todos autenticados" ON public.proveedores;
 CREATE POLICY "Select todos autenticados" ON public.proveedores FOR SELECT USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Select todos autenticados" ON public.depositos;
 CREATE POLICY "Select todos autenticados" ON public.depositos FOR SELECT USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Select todos autenticados" ON public.stock_deposito;
 CREATE POLICY "Select todos autenticados" ON public.stock_deposito FOR SELECT USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Select todos autenticados" ON public.remitos_proveedor;
 CREATE POLICY "Select todos autenticados" ON public.remitos_proveedor FOR SELECT USING (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Select todos autenticados" ON public.cargas_ens;
 CREATE POLICY "Select todos autenticados" ON public.cargas_ens FOR SELECT USING (auth.role() = 'authenticated');
 
 -- Políticas para Admins y Jefes de Depósito
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.proveedores;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.proveedores FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.depositos;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.depositos FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.stock_deposito;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.stock_deposito FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.remitos_proveedor;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.remitos_proveedor FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.items_remito_proveedor;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.items_remito_proveedor FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.cargas_ens;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.cargas_ens FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
+
+DROP POLICY IF EXISTS "Gestión Admins y Jefes Deposito" ON public.items_carga_ens;
 CREATE POLICY "Gestión Admins y Jefes Deposito" ON public.items_carga_ens FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND (user_type = 'administrador' OR role = 'jefe de deposito'))
 );
 
 -- Habilitar Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.stock_deposito;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.cargas_ens;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.depositos;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'stock_deposito') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.stock_deposito;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'cargas_ens') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.cargas_ens;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'depositos') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.depositos;
+    END IF;
+END $$;
