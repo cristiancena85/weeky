@@ -1,31 +1,34 @@
 import { getDepositos, getProveedores } from '@/app/actions/deposits';
 import { getProducts } from '@/app/actions/products';
 import { getUsers } from '@/app/actions/users';
+import { getBranches } from '@/app/actions/branches';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Package, Truck, Building2, Users, ClipboardList, History, ArrowRightLeft, UserCircle } from 'lucide-react';
+import { Package, Truck, Building2, Users, ClipboardList, History, ArrowRightLeft, UserCircle, Settings2 } from 'lucide-react';
 import GestionProveedores from '@/components/depositos/GestionProveedores';
 import FormularioRemito from '@/components/depositos/FormularioRemito';
 import FormularioENS from '@/components/depositos/FormularioENS';
 import TablaStock from '@/components/depositos/TablaStock';
+import GestionDepositos from '@/components/depositos/GestionDepositos';
 
 export default async function DepositosPage() {
   const supabase = await createClient();
   
   // Obtener todos los datos necesarios en paralelo
-  const [depositos, proveedores, productos, usuarios, { data: stockRaw }] = await Promise.all([
+  const [depositos, proveedores, productos, usuarios, branches, { data: stockRaw }] = await Promise.all([
     getDepositos(),
     getProveedores(),
     getProducts(),
     getUsers(),
+    getBranches(),
     supabase.from('stock_deposito').select(`
       *,
       producto:products(name, sku)
     `)
   ]);
 
-  const vendedores = usuarios.filter(u => u.user_type === 'usuario'); // O filtrar por rol de vendedor si existe
+  const vendedores = usuarios.filter(u => u.user_type === 'usuario' || u.role === 'vendedor');
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -93,19 +96,22 @@ export default async function DepositosPage() {
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-2 shadow-sm">
         <Tabs defaultValue="stock" className="w-full">
           <TabsList className="flex flex-wrap p-1 bg-slate-100/50 dark:bg-black/20 rounded-2xl mb-4 gap-1">
-            <TabsTrigger value="stock" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="stock" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <Package className="w-4 h-4" /> Stock Actual
             </TabsTrigger>
-            <TabsTrigger value="remitos" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="remitos" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <ClipboardList className="w-4 h-4" /> Remitos Proveedor
             </TabsTrigger>
-            <TabsTrigger value="ens" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="ens" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <ArrowRightLeft className="w-4 h-4" /> Cargas ENS
             </TabsTrigger>
-            <TabsTrigger value="proveedores" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="config" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
+              <Settings2 className="w-4 h-4" /> Depósitos
+            </TabsTrigger>
+            <TabsTrigger value="proveedores" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <UserCircle className="w-4 h-4" /> Proveedores
             </TabsTrigger>
-            <TabsTrigger value="historial" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="historial" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <History className="w-4 h-4" /> Historial
             </TabsTrigger>
           </TabsList>
@@ -127,8 +133,8 @@ export default async function DepositosPage() {
                 <CardContent>
                   <FormularioRemito 
                     productos={productos} 
-                    depositos={depositos} 
-                    proveedores={proveedores} 
+                    depositos={depositos.filter(d => d.activo && d.tipo === 'central')} 
+                    proveedores={proveedores.filter(p => p.activo)} 
                   />
                 </CardContent>
               </Card>
@@ -143,11 +149,19 @@ export default async function DepositosPage() {
                 <CardContent>
                   <FormularioENS 
                     productos={productos} 
-                    depositos={depositos} 
-                    vendedores={vendedores} 
+                    depositos={depositos.filter(d => d.activo)} 
+                    vendedores={vendedores as any} 
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="config" className="animate-in fade-in slide-in-from-bottom-2">
+              <GestionDepositos 
+                depositos={depositos} 
+                branches={branches} 
+                users={usuarios as any} 
+              />
             </TabsContent>
 
             <TabsContent value="proveedores" className="animate-in fade-in slide-in-from-bottom-2">

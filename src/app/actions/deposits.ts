@@ -27,6 +27,28 @@ export async function createProveedor(formData: { nombre: string; cuit?: string;
   revalidatePath('/dashboard/depositos');
 }
 
+export async function updateProveedor(id: string, formData: { nombre: string; cuit?: string; direccion?: string; activo?: boolean }) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('proveedores')
+    .update(formData)
+    .eq('id', id);
+  
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/depositos');
+}
+
+export async function deleteProveedor(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('proveedores')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/depositos');
+}
+
 /**
  * Gestión de Depósitos
  */
@@ -37,12 +59,64 @@ export async function getDepositos() {
     .select(`
       *,
       sucursal:branches(name),
-      vendedor:profiles(full_name)
+      vendedor:profiles(alias, first_name, last_name)
     `)
     .order('nombre');
   
   if (error) throw new Error(error.message);
-  return data;
+  
+  // Mapear para facilitar el uso de un nombre legible
+  return data.map((d: any) => ({
+    ...d,
+    vendedor: d.vendedor ? {
+      ...d.vendedor,
+      full_name: d.vendedor.alias || `${d.vendedor.first_name || ''} ${d.vendedor.last_name || ''}`.trim() || 'Sin nombre'
+    } : null
+  }));
+}
+
+export async function createDeposito(formData: { 
+  nombre: string; 
+  tipo: 'central' | 'vendedor'; 
+  sucursal_id?: string; 
+  usuario_id?: string;
+  activo?: boolean;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('depositos')
+    .insert([formData]);
+  
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/depositos');
+}
+
+export async function updateDeposito(id: string, formData: { 
+  nombre?: string; 
+  tipo?: 'central' | 'vendedor'; 
+  sucursal_id?: string | null; 
+  usuario_id?: string | null;
+  activo?: boolean;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('depositos')
+    .update(formData)
+    .eq('id', id);
+  
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/depositos');
+}
+
+export async function deleteDeposito(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('depositos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw new Error(error.message);
+  revalidatePath('/dashboard/depositos');
 }
 
 /**
