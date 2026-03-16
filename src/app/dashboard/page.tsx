@@ -53,6 +53,14 @@ export default async function DashboardPage() {
                   <Users className="w-5 h-5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Usuarios</span>
                 </Link>
+                <Link 
+                  href="/dashboard/orders"
+                  className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                  title="Pedidos Semanales"
+                >
+                  <ShoppingCart className="w-5 h-5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
+                  <span className="hidden sm:inline">Pedidos</span>
+                </Link>
                 {(profile?.user_type === 'administrador' || profile?.role === 'jefe de deposito') && (
                   <Link 
                     href="/dashboard/depositos"
