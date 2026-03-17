@@ -17,6 +17,9 @@ interface Deposito {
   id: string;
   nombre: string;
   tipo: string;
+  sucursal?: {
+    name: string;
+  };
 }
 
 interface Proveedor {
@@ -42,6 +45,18 @@ export default function IngresoMercaderia({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Seleccionar "Real Tabacalera" por defecto
+  useEffect(() => {
+    if (proveedores.length > 0 && !proveedorId) {
+      const realTabacalera = proveedores.find(
+        p => p.nombre.toLowerCase().includes('real tabacalera')
+      );
+      if (realTabacalera) {
+        setProveedorId(realTabacalera.id);
+      }
+    }
+  }, [proveedores, proveedorId]);
 
   // Filtrar productos por proveedor seleccionado
   const productosFiltrados = productos.filter(p => p.proveedor_id === proveedorId && 
@@ -177,7 +192,9 @@ export default function IngresoMercaderia({
                 >
                   <option value="">Seleccionar depósito central...</option>
                   {depCentrales.map(d => (
-                    <option key={d.id} value={d.id}>{d.nombre}</option>
+                    <option key={d.id} value={d.id}>
+                      {d.nombre}{d.sucursal?.name ? `, ${d.sucursal.name}` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
