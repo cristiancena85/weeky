@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 export type Customer = {
   id: string
   name: string
+  cuit: string | null
   address: string | null
   phone: string | null
   type: 'cliente' | 'vendedor'
@@ -49,7 +50,7 @@ export async function createCustomer(data: Omit<Customer, 'id' | 'created_at'>) 
   const { error } = await supabase.from('customers').insert(data)
   if (error) throw new Error(error.message)
 
-  revalidatePath('/dashboard/catalog')
+  revalidatePath('/dashboard/personal-comercial')
   return { success: true }
 }
 
@@ -60,7 +61,7 @@ export async function updateCustomer(id: string, data: Partial<Customer>) {
   const { error } = await supabase.from('customers').update(data).eq('id', id)
   if (error) throw new Error(error.message)
 
-  revalidatePath('/dashboard/catalog')
+  revalidatePath('/dashboard/personal-comercial')
   return { success: true }
 }
 

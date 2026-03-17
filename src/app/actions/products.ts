@@ -36,9 +36,11 @@ export type Product = {
   variant: string | null
   shield: string | null
   type: string | null
+  proveedor_id: string
   created_at: string
   category?: ProductCategory
   template?: UnitTemplate
+  proveedor?: { id: string, nombre: string }
 }
 
 async function requireAdmin() {
@@ -97,7 +99,8 @@ export async function getProducts(): Promise<Product[]> {
       template:unit_templates(
         *,
         units:template_units(*)
-      )
+      ),
+      proveedor:proveedores(id, nombre)
     `)
     .order('name', { ascending: true })
 
@@ -113,7 +116,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function createProduct(
-  productData: Omit<Product, 'id' | 'created_at' | 'category' | 'template'>
+  productData: Omit<Product, 'id' | 'created_at' | 'category' | 'template' | 'proveedor'>
 ) {
   await requireAdmin()
   const supabase = await createAdminClient()

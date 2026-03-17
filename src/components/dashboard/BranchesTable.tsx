@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Branch, deleteBranch, getBranches } from '@/app/actions/branches'
-import { MoreVertical, Edit2, Trash2, Plus, Search, MapPin } from 'lucide-react'
+import { MoreVertical, Edit2, Trash2, Plus, Search, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 import BranchFormModal from './BranchFormModal'
 
@@ -87,7 +87,7 @@ export default function BranchesTable({ initialBranches }: { initialBranches: Br
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600">
-                      <MapPin className="w-5 h-5" />
+                      <Building2 className="w-5 h-5" />
                     </div>
                     <span className="text-slate-900 dark:text-white font-bold">{b.name}</span>
                   </div>

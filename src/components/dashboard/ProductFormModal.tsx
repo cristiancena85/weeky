@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react'
 import { X, Save, Tag, Layers } from 'lucide-react'
 import { Product, ProductCategory, UnitTemplate, createProduct, updateProduct, getCategories } from '@/app/actions/products'
+import { getProveedores } from '@/app/actions/deposits'
 import { toast } from 'sonner'
+
+interface Proveedor {
+  id: string;
+  nombre: string;
+}
 
 type ProductFormModalProps = {
   product?: Product
@@ -15,6 +21,7 @@ type ProductFormModalProps = {
 export default function ProductFormModal({ product, templates, onClose, onSuccess }: ProductFormModalProps) {
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<ProductCategory[]>([])
+  const [proveedores, setProveedores] = useState<Proveedor[]>([])
   
   // Basic Fields
   const [name, setName] = useState(product?.name || '')
@@ -25,20 +32,25 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
   const [variant, setVariant] = useState(product?.variant || '')
   const [shield, setShield] = useState(product?.shield || '')
   const [type, setType] = useState(product?.type || '')
+  const [proveedorId, setProveedorId] = useState(product?.proveedor_id || '')
 
   useEffect(() => {
-    async function loadCategories() {
+    async function loadData() {
       try {
-        const cats = await getCategories()
+        const [cats, provs] = await Promise.all([
+          getCategories(),
+          getProveedores()
+        ])
         setCategories(cats)
+        setProveedores(provs)
         if (!product?.category_id && cats.length > 0) {
           setCategoryId(cats[0].id)
         }
       } catch (err) {
-        console.error("Error cargando categorías:", err)
+        console.error("Error cargando datos del formulario:", err)
       }
     }
-    loadCategories()
+    loadData()
   }, [product])
 
 
@@ -55,7 +67,14 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
         brand: brand || null,
         variant: variant || null,
         shield: shield || null,
-        type: type || null
+        type: type || null,
+        proveedor_id: proveedorId
+      }
+
+      if (!productData.proveedor_id) {
+        toast.error('Debes seleccionar un proveedor')
+        setLoading(false)
+        return
       }
 
       if (product) {
@@ -157,6 +176,20 @@ export default function ProductFormModal({ product, templates, onClose, onSucces
                     placeholder="Ej. Box 20"
                     className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none"
                   />
+                </div>
+                <div className="sm:col-span-2 md:col-span-1">
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Proveedor Principal</label>
+                  <select
+                    required
+                    value={proveedorId}
+                    onChange={(e) => setProveedorId(e.target.value)}
+                    className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    <option value="" disabled>Seleccionar proveedor...</option>
+                    {proveedores.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

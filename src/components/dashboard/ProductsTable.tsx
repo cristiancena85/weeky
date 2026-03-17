@@ -96,7 +96,9 @@ export default function ProductsTable({ initialProducts, initialTemplates }: { i
                         {p.brand ? ` • ${p.brand}` : ''}
                         {p.type ? ` • ${p.type}` : ''}
                       </div>
-                      <div className="text-[10px] text-slate-500 uppercase tracking-tighter mt-0.5">SKU: {p.sku || 'N/A'}</div>
+                      <div className="text-[10px] text-slate-500 uppercase tracking-tighter mt-0.5">
+                        SKU: {p.sku || 'N/A'} • Proveedor: <span className="font-bold text-blue-600 dark:text-blue-400">{p.proveedor?.nombre || 'Desconocido'}</span>
+                      </div>
                     </div>
                   </div>
                 </td>

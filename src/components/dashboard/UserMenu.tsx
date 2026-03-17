@@ -9,16 +9,23 @@ interface UserMenuProps {
   user: {
     email?: string
   }
-  profile?: {
+  profilePromise?: Promise<{
     alias?: string
     user_type?: string
     role?: string
-  }
+  } | null>
 }
 
-export function UserMenu({ user, profile }: UserMenuProps) {
+export function UserMenu({ user, profilePromise }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [profile, setProfile] = useState<any>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (profilePromise) {
+      profilePromise.then(setProfile)
+    }
+  }, [profilePromise])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

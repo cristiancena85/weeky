@@ -5,16 +5,21 @@ import { usePathname } from 'next/navigation';
 import { 
   BarChart3, 
   Package, 
-  ShoppingCart, 
-  Building2, 
-  Menu
+  Receipt, 
+  Warehouse, 
+  Menu,
+  Factory,
+  RefreshCw,
+  Users
 } from 'lucide-react';
 
 const mobileItems = [
   { name: 'Inicio', href: '/dashboard', icon: BarChart3 },
   { name: 'Catálogo', href: '/dashboard/catalog', icon: Package },
-  { name: 'Pedidos', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Depósitos', href: '/dashboard/depositos', icon: Building2 },
+  { name: 'Ciclo Semanal', href: '/dashboard/orders', icon: RefreshCw },
+  { name: 'Proveedores', href: '/dashboard/proveedores', icon: Factory },
+  { name: 'Depósitos', href: '/dashboard/depositos', icon: Warehouse },
+  { name: 'Personal Comercial', href: '/dashboard/personal-comercial', icon: Users },
 ];
 
 export function MobileNav() {

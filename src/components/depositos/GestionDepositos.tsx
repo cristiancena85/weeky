@@ -20,6 +20,8 @@ import { toast } from 'sonner';
 interface Deposito {
   id: string;
   nombre: string;
+  direccion: string | null;
+  localidad: string | null;
   tipo: 'central' | 'vendedor';
   sucursal_id?: string;
   usuario_id?: string;
@@ -43,6 +45,10 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
   // Form State
   const [formData, setFormData] = useState({
     nombre: '',
+    calle: '',
+    numero: '',
+    direccion: '',
+    localidad: '',
     tipo: 'central' as 'central' | 'vendedor',
     sucursal_id: '',
     usuario_id: '',
@@ -54,6 +60,10 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
       setEditingDeposito(deposito);
       setFormData({
         nombre: deposito.nombre,
+        calle: deposito.direccion?.split(' ').slice(0, -1).join(' ') || deposito.nombre,
+        numero: deposito.direccion?.split(' ').slice(-1)[0] || '',
+        direccion: deposito.direccion || '',
+        localidad: deposito.localidad || '',
         tipo: deposito.tipo,
         sucursal_id: deposito.sucursal_id || '',
         usuario_id: deposito.usuario_id || '',
@@ -63,6 +73,10 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
       setEditingDeposito(null);
       setFormData({
         nombre: '',
+        calle: '',
+        numero: '',
+        direccion: '',
+        localidad: '',
         tipo: 'central',
         sucursal_id: '',
         usuario_id: '',
@@ -76,15 +90,24 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
     e.preventDefault();
     setLoading(true);
     try {
+      const direccionCompleta = formData.tipo === 'central' ? `${formData.calle} ${formData.numero}` : formData.direccion;
+      
+      // Extraemos solo los campos que existen en la base de datos
+      const { calle, numero, ...dbFields } = formData;
+      
+      const dataToSave = {
+        ...dbFields,
+        nombre: formData.tipo === 'central' ? direccionCompleta : formData.nombre,
+        direccion: direccionCompleta,
+        sucursal_id: formData.tipo === 'central' ? formData.sucursal_id : null,
+        usuario_id: formData.tipo === 'vendedor' ? formData.usuario_id : null,
+      };
+
       if (editingDeposito) {
-        await updateDeposito(editingDeposito.id, {
-          ...formData,
-          sucursal_id: formData.tipo === 'central' ? formData.sucursal_id : null,
-          usuario_id: formData.tipo === 'vendedor' ? formData.usuario_id : null,
-        });
+        await updateDeposito(editingDeposito.id, dataToSave);
         toast.success('Depósito actualizado correctamente');
       } else {
-        await createDeposito(formData);
+        await createDeposito(dataToSave);
         toast.success('Depósito creado correctamente');
       }
       setIsModalOpen(false);
@@ -106,7 +129,7 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
   };
 
   const filteredDepositos = depositos.filter(d => 
-    d.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (d.direccion || d.nombre).toLowerCase().includes(searchTerm.toLowerCase()) ||
     d.sucursal?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     d.vendedor?.full_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -119,18 +142,23 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar por nombre, sucursal o vendedor..."
+            placeholder="Buscar por dirección, sucursal o vendedor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
           />
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-purple-600/20 transition-all active:scale-95"
-        >
-          <Plus className="w-5 h-5" /> Nuevo Depósito
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => handleOpenModal()}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-purple-600/20 transition-all active:scale-95"
+          >
+            <Plus className="w-5 h-5" /> Nuevo Depósito Central
+          </button>
+          <p className="text-[10px] text-slate-400 text-center sm:text-left italic">
+            * Los sub-depósitos de vendedores se crean automáticamente al dar de alta al usuario.
+          </p>
+        </div>
       </div>
 
       {/* Tabla de Depósitos */}
@@ -156,7 +184,10 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
                       }`}>
                         {deposito.tipo === 'central' ? <Warehouse className="w-5 h-5" /> : <Truck className="w-5 h-5" />}
                       </div>
-                      <span className="font-bold text-slate-900 dark:text-white">{deposito.nombre}</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {deposito.direccion || deposito.nombre}
+                        {deposito.localidad && <span className="text-slate-400 font-medium ml-2">({deposito.localidad})</span>}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -226,50 +257,71 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
                 {editingDeposito ? 'Editar Depósito' : 'Nuevo Depósito'}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
-                Configure un punto de almacenamiento físico o móvil.
+                Configure un nuevo depósito físico.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
               <div className="space-y-4">
-                {/* Nombre */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nombre del Depósito</label>
+                {/* Campos de Dirección */}
+                {formData.tipo === 'central' ? (
+                  <div className="grid grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="col-span-3 space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Calle</label>
+                      <input
+                        required
+                        type="text"
+                        value={formData.calle}
+                        onChange={(e) => setFormData({ ...formData, calle: e.target.value })}
+                        placeholder="Ej: Av. Rivadavia"
+                        className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold"
+                      />
+                    </div>
+                    <div className="col-span-1 space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nro</label>
+                      <input
+                        required
+                        type="text"
+                        value={formData.numero}
+                        onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                        placeholder="123"
+                        className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Nombre automático para vendedores (lectura) */
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nombre (Automático)</label>
+                    <input
+                      readOnly
+                      type="text"
+                      value={formData.nombre}
+                      className="w-full px-5 py-3.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-500 font-bold cursor-not-allowed"
+                    />
+                  </div>
+                )}
+
+                {/* Localidad */}
+                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Localidad</label>
                   <input
                     required
                     type="text"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    placeholder="Ej: Depósito Central Norte"
+                    value={formData.localidad}
+                    onChange={(e) => setFormData({ ...formData, localidad: e.target.value })}
+                    placeholder="Ej: Quilmes"
                     className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold"
                   />
                 </div>
 
-                {/* Tipo */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, tipo: 'central' })}
-                    className={`flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all font-bold ${
-                      formData.tipo === 'central'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-500/10 text-purple-600'
-                        : 'border-slate-100 dark:border-white/5 text-slate-400 hover:border-slate-200'
-                    }`}
-                  >
-                    <Warehouse className="w-5 h-5" /> Físico / Central
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, tipo: 'vendedor' })}
-                    className={`flex items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all font-bold ${
-                      formData.tipo === 'vendedor'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-500/10 text-purple-600'
-                        : 'border-slate-100 dark:border-white/5 text-slate-400 hover:border-slate-200'
-                    }`}
-                  >
-                    <Truck className="w-5 h-5" /> Vendedor / Camión
-                  </button>
-                </div>
+                {/* Tipo de Depósito (Solo visible si es edición de un vendedor existente, si no, se asume Central) */}
+                {editingDeposito?.tipo === 'vendedor' && (
+                  <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-2xl flex items-center gap-3">
+                    <Truck className="w-5 h-5 text-amber-600" />
+                    <span className="text-sm font-bold text-amber-800 dark:text-amber-400">Este es un sub-depósito de vendedor.</span>
+                  </div>
+                )}
 
                 {/* Sucursal (Si es Central) */}
                 {formData.tipo === 'central' && (
@@ -279,12 +331,17 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
                       required
                       value={formData.sucursal_id}
                       onChange={(e) => setFormData({ ...formData, sucursal_id: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold appearance-none"
+                      className="w-full px-5 py-3.5 bg-slate-50 dark:bg-[#1a1a24] border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold appearance-none text-slate-900 dark:text-white"
                     >
-                      <option value="">Seleccione una sucursal...</option>
-                      {branches.map(b => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
+                      <option value="" className="bg-white dark:bg-[#1a1a24]">Seleccione una sucursal...</option>
+                      {branches
+                        .filter(b => 
+                          // Ocultar sucursales ya ocupadas por OTROS depósitos
+                          !depositos.some(d => d.sucursal_id === b.id && d.id !== editingDeposito?.id)
+                        )
+                        .map(b => (
+                          <option key={b.id} value={b.id} className="bg-white dark:bg-[#1a1a24]">{b.name}</option>
+                        ))}
                     </select>
                   </div>
                 )}
@@ -292,11 +349,19 @@ export default function GestionDepositos({ depositos, branches, users }: Gestion
                 {/* Usuario (Si es Vendedor) */}
                 {formData.tipo === 'vendedor' && (
                   <div className="space-y-1.5 animate-in slide-in-from-top-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Vendedor / Chofér</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Vendedor / Chofér Responsable</label>
                     <select
                       required
                       value={formData.usuario_id}
-                      onChange={(e) => setFormData({ ...formData, usuario_id: e.target.value })}
+                      onChange={(e) => {
+                        const selectedUser = users.find(u => u.id === e.target.value);
+                        const name = selectedUser ? (selectedUser.full_name || selectedUser.alias || selectedUser.email) : '';
+                        setFormData({ 
+                          ...formData, 
+                          usuario_id: e.target.value,
+                          nombre: name // Sincronizamos el nombre automáticamente
+                        });
+                      }}
                       className="w-full px-5 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold appearance-none"
                     >
                       <option value="">Seleccione al responsable...</option>

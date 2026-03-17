@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Save, UserCircle, MapPin, Phone } from 'lucide-react'
+import { X, Save, UserCircle, MapPin, Phone, ShieldCheck } from 'lucide-react'
 import { Customer, createCustomer, updateCustomer } from '@/app/actions/customers'
 import { Branch } from '@/app/actions/branches'
 import { toast } from 'sonner'
@@ -16,6 +16,7 @@ type CustomerFormModalProps = {
 export default function CustomerFormModal({ customer, branches, onClose, onSuccess }: CustomerFormModalProps) {
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState(customer?.name || '')
+  const [cuit, setCuit] = useState(customer?.cuit || '')
   const [address, setAddress] = useState(customer?.address || '')
   const [phone, setPhone] = useState(customer?.phone || '')
   const [type, setType] = useState<'cliente' | 'vendedor'>(customer?.type || 'cliente')
@@ -31,7 +32,7 @@ export default function CustomerFormModal({ customer, branches, onClose, onSucce
         setLoading(false)
         return
       }
-      const data = { name, address, phone, type, branch_id: branchId }
+      const data = { name, cuit, address, phone, type, branch_id: branchId }
       if (customer) {
         await updateCustomer(customer.id, data)
         toast.success(type === 'cliente' ? 'Cliente actualizado' : 'Vendedor actualizado')
@@ -79,7 +80,22 @@ export default function CustomerFormModal({ customer, branches, onClose, onSucce
 
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
-              Dirección
+              CUIL / CUIT
+            </label>
+            <div className="relative">
+              <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                value={cuit}
+                onChange={(e) => setCuit(e.target.value)}
+                placeholder="Ej. 20-12345678-9"
+                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
+              Dirección de Entrega
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

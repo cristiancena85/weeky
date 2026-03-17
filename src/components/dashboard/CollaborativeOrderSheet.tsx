@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Product } from '@/app/actions/products'
 import { Customer } from '@/app/actions/customers'
 import { createOrder, getOrdersWithItems, updateOrderStatus } from '@/app/actions/orders'
-import { ShoppingCart, Plus, User, Package, Clock, CheckCircle2, Truck, XCircle, Search, MoreHorizontal } from 'lucide-react'
+import { Receipt, Plus, User, Package, Clock, CheckCircle2, Truck, XCircle, Search, MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 
 type OrderSheetProps = {
@@ -109,7 +109,7 @@ export default function CollaborativeOrderSheet({ cycleId, products, customers, 
       <div className="lg:col-span-5 space-y-6">
         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-xl sticky top-24">
           <div className="flex items-center gap-2 mb-6 text-purple-600 dark:text-purple-400">
-            <ShoppingCart className="w-6 h-6" />
+            <Receipt className="w-6 h-6" />
             <h2 className="text-xl font-bold italic underline decoration-purple-500/30 underline-offset-4">Nuevo Pedido</h2>
           </div>
 

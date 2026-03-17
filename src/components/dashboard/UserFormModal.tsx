@@ -24,8 +24,33 @@ export default function UserFormModal({ user, roles, onClose, onSuccess }: UserF
     last_name: user?.last_name || '',
     alias: user?.alias || '',
     user_type: user?.user_type || 'usuario',
-    role: user?.role || ''
+    role_ids: user?.roles?.map(r => r.role_id) || [] as string[]
   })
+
+  const toggleRole = (roleId: string) => {
+    setFormData(prev => {
+      const exists = prev.role_ids.includes(roleId)
+      if (exists) {
+        return { ...prev, role_ids: prev.role_ids.filter(id => id !== roleId) }
+      } else {
+        return { ...prev, role_ids: [...prev.role_ids, roleId] }
+      }
+    })
+  }
+
+  const selectAllRoles = () => {
+    setFormData(prev => ({
+      ...prev,
+      role_ids: roles.map(r => r.id)
+    }))
+  }
+
+  const clearAllRoles = () => {
+    setFormData(prev => ({
+      ...prev,
+      role_ids: []
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,8 +60,13 @@ export default function UserFormModal({ user, roles, onClose, onSuccess }: UserF
     try {
       if (isEdit) {
         await updateUser(user.id, formData)
-        // Actualización optimista local
-        onSuccess({ ...user, ...formData } as UserProfile, true)
+        
+        // Reconstruimos el objeto roles para la actualización optimista en la tabla
+        const rolesDeUsuario = roles
+          .filter(r => formData.role_ids.includes(r.id))
+          .map(r => ({ role_id: r.id, roles: { name: r.name } }))
+
+        onSuccess({ ...user, ...formData, roles: rolesDeUsuario } as UserProfile, true)
       } else {
         if (!formData.password) throw new Error('La contraseña es requerida para nuevos usuarios.')
         await createUser(formData)
@@ -148,20 +178,57 @@ export default function UserFormModal({ user, roles, onClose, onSuccess }: UserF
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rol / Puesto</label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 [&>option]:bg-white dark:[&>option]:bg-slate-900 transition-colors"
-              >
-                <option value="">Ninguno</option>
+            <div className="space-y-2 md:col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Roles / Funciones</label>
+                <div className="flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={selectAllRoles}
+                    className="text-[10px] font-black uppercase tracking-widest text-purple-600 hover:text-purple-500 transition-colors"
+                  >
+                    Seleccionar Todos
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={clearAllRoles}
+                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    Quitar Todos
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 {roles.map((role) => (
-                  <option key={role.id} value={role.name}>
-                    {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
-                  </option>
+                  <label 
+                    key={role.id} 
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                      formData.role_ids.includes(role.id)
+                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                        : 'border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={formData.role_ids.includes(role.id)}
+                      onChange={() => toggleRole(role.id)}
+                    />
+                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                      formData.role_ids.includes(role.id) 
+                        ? 'bg-purple-600 border-purple-600 text-white' 
+                        : 'border-slate-300 dark:border-white/20'
+                    }`}>
+                      {formData.role_ids.includes(role.id) && (
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </div>
+                    <span className={`text-sm font-bold ${formData.role_ids.includes(role.id) ? 'text-purple-900 dark:text-purple-100' : 'text-slate-600 dark:text-slate-400'}`}>
+                      {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                    </span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
           </div>
         </div>

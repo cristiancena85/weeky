@@ -1,34 +1,58 @@
 import { getDepositos, getProveedores } from '@/app/actions/deposits';
+import { getMovimientosDeposito } from '@/app/actions/movements';
 import { getProducts } from '@/app/actions/products';
 import { getUsers } from '@/app/actions/users';
 import { getBranches } from '@/app/actions/branches';
+import { getCustomers } from '@/app/actions/customers';
 import { createClient } from '@/lib/supabase/server';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Package, Truck, Building2, Users, ClipboardList, History, ArrowRightLeft, UserCircle, Settings2 } from 'lucide-react';
-import GestionProveedores from '@/components/depositos/GestionProveedores';
-import FormularioRemito from '@/components/depositos/FormularioRemito';
-import FormularioENS from '@/components/depositos/FormularioENS';
+import { 
+  Package, 
+  Truck, 
+  Warehouse, 
+  Users, 
+  ClipboardList, 
+  ArrowRightLeft, 
+  UserCircle, 
+  Settings2,
+  ShoppingBag, 
+  LogIn, 
+  MapPin,
+  Building2
+} from 'lucide-react';
 import TablaStock from '@/components/depositos/TablaStock';
 import GestionDepositos from '@/components/depositos/GestionDepositos';
+import IngresoMercaderia from '@/components/depositos/IngresoMercaderia';
+import MovimientosView from '../../../components/depositos/MovimientosView';
+import AjusteStock from '@/components/depositos/AjusteStock';
+import BranchesTable from '@/components/dashboard/BranchesTable';
 
 export default async function DepositosPage() {
-  const supabase = await createClient();
-  
-  // Obtener todos los datos necesarios en paralelo
-  const [depositos, proveedores, productos, usuarios, branches, { data: stockRaw }] = await Promise.all([
+  const [
+    depositos, 
+    productos, 
+    usuarios, 
+    branches, 
+    customers, 
+    proveedores,
+    movimientos,
+    { data: stockRaw }
+  ] = await Promise.all([
     getDepositos(),
-    getProveedores(),
     getProducts(),
     getUsers(),
     getBranches(),
-    supabase.from('stock_deposito').select(`
-      *,
-      producto:products(name, sku)
-    `)
+    getCustomers(),
+    getProveedores(),
+    getMovimientosDeposito(),
+    (async () => {
+      const supabase = await createClient();
+      return supabase.from('stock_actual').select('*');
+    })()
   ]);
 
-  const vendedores = usuarios.filter(u => u.user_type === 'usuario' || u.role === 'vendedor');
+
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -47,7 +71,7 @@ export default async function DepositosPage() {
         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl group-hover:scale-110 transition-transform">
-              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <Warehouse className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -63,7 +87,7 @@ export default async function DepositosPage() {
             </div>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white">
-            {depositos.filter(d => d.tipo === 'vendedor').length}
+            {customers.filter(c => c.type === 'vendedor').length}
           </div>
           <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Sub-depósitos (Camiones)</div>
         </div>
@@ -71,19 +95,7 @@ export default async function DepositosPage() {
         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl group-hover:scale-110 transition-transform">
-              <Users className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">
-            {proveedores.filter(p => p.activo).length}
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Proveedores Activos</div>
-        </div>
-
-        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:scale-110 transition-transform">
-              <ClipboardList className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <Package className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -94,25 +106,29 @@ export default async function DepositosPage() {
       </div>
 
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-2 shadow-sm">
-        <Tabs defaultValue="stock" className="w-full">
+        <Tabs defaultValue="stock" syncWithUrl className="w-full">
           <TabsList className="flex flex-wrap p-1 bg-slate-100/50 dark:bg-black/20 rounded-2xl mb-4 gap-1">
             <TabsTrigger value="stock" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
               <Package className="w-4 h-4" /> Stock Actual
             </TabsTrigger>
-            <TabsTrigger value="remitos" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
-              <ClipboardList className="w-4 h-4" /> Remitos Proveedor
+            <TabsTrigger value="ingreso" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
+              <LogIn className="w-4 h-4" /> Ingreso Mercadería
             </TabsTrigger>
-            <TabsTrigger value="ens" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
-              <ArrowRightLeft className="w-4 h-4" /> Cargas ENS
+
+            <TabsTrigger value="movimientos" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
+              <ArrowRightLeft className="w-4 h-4" /> Movimientos
             </TabsTrigger>
+
             <TabsTrigger value="config" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
-              <Settings2 className="w-4 h-4" /> Depósitos
+              <Warehouse className="w-4 h-4" /> Depósitos
             </TabsTrigger>
-            <TabsTrigger value="proveedores" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
-              <UserCircle className="w-4 h-4" /> Proveedores
+
+            <TabsTrigger value="ajuste" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
+              <Settings2 className="w-4 h-4" /> Ajuste Stock
             </TabsTrigger>
-            <TabsTrigger value="historial" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
-              <History className="w-4 h-4" /> Historial
+
+            <TabsTrigger value="sucursales" className="flex items-center gap-2 px-6 py-2.5 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm transition-all text-xs font-black uppercase">
+              <Building2 className="w-4 h-4" /> Sucursales
             </TabsTrigger>
           </TabsList>
           
@@ -124,37 +140,23 @@ export default async function DepositosPage() {
               />
             </TabsContent>
 
-            <TabsContent value="remitos" className="animate-in fade-in slide-in-from-bottom-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Entrada de Mercadería</CardTitle>
-                  <CardDescription>Cargar remito físico del proveedor al depósito central.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FormularioRemito 
-                    productos={productos} 
-                    depositos={depositos.filter(d => d.activo && d.tipo === 'central')} 
-                    proveedores={proveedores.filter(p => p.activo)} 
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="ingreso" className="animate-in fade-in slide-in-from-bottom-2">
+              <IngresoMercaderia 
+                productos={productos} 
+                depositos={depositos} 
+                proveedores={proveedores as any || []} 
+              />
             </TabsContent>
 
-            <TabsContent value="ens" className="animate-in fade-in slide-in-from-bottom-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Logística ENS</CardTitle>
-                  <CardDescription>Asignar mercadería del depósito central a la unidad del vendedor.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FormularioENS 
-                    productos={productos} 
-                    depositos={depositos.filter(d => d.activo)} 
-                    vendedores={vendedores as any} 
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="movimientos" className="animate-in fade-in slide-in-from-bottom-2">
+              <MovimientosView 
+                movimientos={movimientos} 
+                productos={productos} 
+                depositos={depositos} 
+              />
             </TabsContent>
+
+
 
             <TabsContent value="config" className="animate-in fade-in slide-in-from-bottom-2">
               <GestionDepositos 
@@ -163,15 +165,18 @@ export default async function DepositosPage() {
                 users={usuarios as any} 
               />
             </TabsContent>
-
-            <TabsContent value="proveedores" className="animate-in fade-in slide-in-from-bottom-2">
-              <GestionProveedores proveedores={proveedores} />
-            </TabsContent>
             
-            <TabsContent value="historial" className="animate-in fade-in slide-in-from-bottom-2">
-              <div className="h-[400px] flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl text-slate-400 font-medium">
-                Registro histórico de movimientos (Próximamente)...
-              </div>
+
+            <TabsContent value="ajuste" className="animate-in fade-in slide-in-from-bottom-2">
+              <AjusteStock 
+                productos={productos} 
+                depositos={depositos} 
+                stockActual={stockRaw as any || []} 
+              />
+            </TabsContent>
+
+            <TabsContent value="sucursales" className="animate-in fade-in slide-in-from-bottom-2">
+              <BranchesTable initialBranches={branches} />
             </TabsContent>
           </div>
         </Tabs>

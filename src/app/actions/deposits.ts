@@ -2,6 +2,20 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import {
+  Package,
+  Truck,
+  Building2,
+  Users,
+  ClipboardList,
+  History,
+  ArrowRightLeft,
+  UserCircle,
+  Settings2,
+  UserSquare2
+} from 'lucide-react';
 
 /**
  * Gestión de Proveedores
@@ -12,7 +26,7 @@ export async function getProveedores() {
     .from('proveedores')
     .select('*')
     .order('nombre');
-  
+
   if (error) throw new Error(error.message);
   return data;
 }
@@ -78,8 +92,10 @@ export async function getDepositos() {
 export async function createDeposito(formData: { 
   nombre: string; 
   tipo: 'central' | 'vendedor'; 
-  sucursal_id?: string; 
-  usuario_id?: string;
+  sucursal_id?: string | null; 
+  usuario_id?: string | null;
+  direccion?: string;
+  localidad?: string;
   activo?: boolean;
 }) {
   const supabase = await createClient();
@@ -96,6 +112,8 @@ export async function updateDeposito(id: string, formData: {
   tipo?: 'central' | 'vendedor'; 
   sucursal_id?: string | null; 
   usuario_id?: string | null;
+  direccion?: string;
+  localidad?: string;
   activo?: boolean;
 }) {
   const supabase = await createClient();
@@ -127,6 +145,7 @@ export async function cargarRemitoProveedor(remito: {
   numero_remito: string;
   deposito_id: string;
   items: { producto_id: string; cantidad: number }[];
+  foto_url?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -140,7 +159,8 @@ export async function cargarRemitoProveedor(remito: {
       proveedor_id: remito.proveedor_id,
       numero_remito: remito.numero_remito,
       deposito_id: remito.deposito_id,
-      creado_por: user.id
+      creado_por: user.id,
+      foto_url: remito.foto_url
     }])
     .select()
     .single();
@@ -189,86 +209,64 @@ export async function cargarRemitoProveedor(remito: {
 }
 
 /**
- * Carga ENS (Transferencia Depósito Central -> Vendedor)
+ * Obtener historial de remitos del proveedor
  */
-export async function crearCargaENS(carga: {
-  vendedor_id: string;
-  deposito_origen_id: string;
-  deposito_destino_id: string;
+export async function getRemitosProveedor() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('remitos_proveedor')
+    .select(`
+      *,
+      proveedor:proveedores(nombre),
+      deposito:depositos(nombre),
+      creador:profiles(alias, first_name, last_name),
+      items:items_remito_proveedor(
+        *,
+        producto:products(name, sku)
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  return data.map((r: any) => ({
+    ...r,
+    creador_nombre: r.creador?.alias || `${r.creador?.first_name || ''} ${r.creador?.last_name || ''}`.trim() || 'Desconocido'
+  }));
+}
+
+
+/**
+ * Ajuste manual de stock (Carga inicial o inventario físico)
+ */
+export async function ajustarStockDeposito(ajuste: {
+  deposito_id: string;
   items: { producto_id: string; cantidad: number }[];
+  observaciones?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error('No autorizado');
 
-  // 1. Insertar cabecera ENS
-  const { data: ensData, error: ensError } = await supabase
-    .from('cargas_ens')
-    .insert([{
-      vendedor_id: carga.vendedor_id,
-      deposito_origen_id: carga.deposito_origen_id,
-      deposito_destino_id: carga.deposito_destino_id,
-      creado_por: user.id,
-      estado: 'completado'
-    }])
-    .select()
-    .single();
+  // 1. Opcional: Registrar el ajuste en una tabla de auditoría si existiera
+  // Por ahora actualizamos directamente la tabla stock_deposito
 
-  if (ensError) throw new Error(ensError.message);
-
-  // 2. Insertar items
-  const itemsToInsert = carga.items.map(item => ({
-    carga_id: ensData.id,
-    producto_id: item.producto_id,
-    cantidad: item.cantidad
-  }));
-
-  const { error: itemsError } = await supabase
-    .from('items_carga_ens')
-    .insert(itemsToInsert);
-
-  if (itemsError) throw new Error(itemsError.message);
-
-  // 3. Actualizar stocks (Restar origen, Sumar destino)
-  for (const item of carga.items) {
-    // Restar del origen
-    const { data: stockOrigen } = await supabase
-      .from('stock_deposito')
-      .select('cantidad')
-      .eq('deposito_id', carga.deposito_origen_id)
-      .eq('producto_id', item.producto_id)
-      .single();
-
-    if (!stockOrigen || stockOrigen.cantidad < item.cantidad) {
-      throw new Error(`Stock insuficiente en origen para el producto ${item.producto_id}`);
-    }
-
-    await supabase
-      .from('stock_deposito')
-      .update({ cantidad: stockOrigen.cantidad - item.cantidad })
-      .eq('deposito_id', carga.deposito_origen_id)
-      .eq('producto_id', item.producto_id);
-
-    // Sumar al destino
-    const { data: stockDestino } = await supabase
-      .from('stock_deposito')
-      .select('cantidad')
-      .eq('deposito_id', carga.deposito_destino_id)
-      .eq('producto_id', item.producto_id)
-      .single();
-
-    const nuevaCantDestino = (stockDestino?.cantidad || 0) + item.cantidad;
-
-    await supabase
+  for (const item of ajuste.items) {
+    const { error: stockError } = await supabase
       .from('stock_deposito')
       .upsert({
-        deposito_id: carga.deposito_destino_id,
+        deposito_id: ajuste.deposito_id,
         producto_id: item.producto_id,
-        cantidad: nuevaCantDestino,
+        cantidad: item.cantidad,
         updated_at: new Date().toISOString()
       });
+
+    if (stockError) throw new Error(stockError.message);
   }
+
+  // Podríamos registrar la actividad
+  // await logActivity({ ... });
 
   revalidatePath('/dashboard/depositos');
   return { success: true };

@@ -16,21 +16,31 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  // Dejamos de esperar (await) el perfil aquí para no bloquear el renderizado del shell.
+  const fetchProfile = async () => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  const profilePromise = fetchProfile();
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020205] flex transition-colors duration-300">
       {/* Barra Lateral (Desktop) */}
-      <Sidebar profile={profile} />
+      <Sidebar profilePromise={profilePromise} />
 
       {/* Contenido Principal */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Barra Superior */}
-        <Topbar user={user} profile={profile} />
+        <Topbar user={user} profilePromise={profilePromise} />
 
         {/* Zona de Contenido */}
         <main className="flex-1 pb-32 lg:pb-10 overflow-x-hidden">

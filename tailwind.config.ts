@@ -1,3 +1,4 @@
+// Triggering rebuild to fix ENOENT on deleted files
 import type { Config } from 'tailwindcss'
 
 const config: Config = {

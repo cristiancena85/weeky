@@ -1,8 +1,9 @@
 'use client';
 
 import { UserMenu } from './UserMenu';
+import { RoleSwitcher } from './RoleSwitcher';
 
-export function Topbar({ user, profile }: { user: any; profile: any }) {
+export function Topbar({ user, profilePromise }: { user: any; profilePromise: Promise<any> }) {
   return (
     <header className="h-16 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#020205]/40 backdrop-blur-xl sticky top-0 z-40 px-6 transition-colors">
       <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
@@ -17,7 +18,8 @@ export function Topbar({ user, profile }: { user: any; profile: any }) {
         <div className="hidden lg:block"></div>
         
         <div className="flex items-center gap-4">
-          <UserMenu user={user} profile={profile} />
+          <RoleSwitcher profilePromise={profilePromise} />
+          <UserMenu user={user} profilePromise={profilePromise} />
         </div>
       </div>
     </header>

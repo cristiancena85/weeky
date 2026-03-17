@@ -15,12 +15,13 @@ export default function UsersTable({ initialUsers, roles }: { initialUsers: User
 
   const filteredUsers = users.filter((u) => {
     const term = search.toLowerCase()
+    const rolesLower = u.roles?.map(r => r.roles.name.toLowerCase()).join(' ') || ''
     return (
       u.email.toLowerCase().includes(term) ||
       (u.alias && u.alias.toLowerCase().includes(term)) ||
       (u.first_name && u.first_name.toLowerCase().includes(term)) ||
       (u.last_name && u.last_name.toLowerCase().includes(term)) ||
-      (u.role && u.role.toLowerCase().includes(term)) ||
+      rolesLower.includes(term) ||
       u.user_type.toLowerCase().includes(term)
     )
   })
@@ -112,7 +113,17 @@ export default function UsersTable({ initialUsers, roles }: { initialUsers: User
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-slate-700 dark:text-slate-300 capitalize">{user.role || '-'}</span>
+                    <div className="flex flex-wrap gap-1">
+                      {user.roles && user.roles.length > 0 ? (
+                        user.roles.map((r, i) => (
+                          <span key={i} className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/10 transition-colors">
+                            {r.roles.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-slate-400 text-xs">-</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <span

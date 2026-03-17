@@ -3,24 +3,38 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  BarChart3, 
+  BarChart3,
   Package, 
-  Users, 
-  ShoppingCart, 
-  Building2, 
-  ChevronRight 
+  Users,
+  UserSquare2,
+  Receipt, 
+  Warehouse, 
+  ChevronRight,
+  Factory,
+  RefreshCw
 } from 'lucide-react';
+
+import { useState, useEffect } from 'react';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
   { name: 'Catálogo', href: '/dashboard/catalog', icon: Package },
-  { name: 'Pedidos', href: '/dashboard/orders', icon: ShoppingCart },
-  { name: 'Depósitos', href: '/dashboard/depositos', icon: Building2 },
-  { name: 'Usuarios', href: '/dashboard/users', icon: Users, adminOnly: true },
+  { name: 'Ciclo Semanal', href: '/dashboard/orders', icon: RefreshCw },
+  { name: 'Proveedores', href: '/dashboard/proveedores', icon: Factory, roles: ['administrador', 'jefe de deposito'] },
+  { name: 'Depósitos', href: '/dashboard/depositos', icon: Warehouse, roles: ['administrador', 'jefe de deposito'] },
+  { name: 'Personal Comercial', href: '/dashboard/personal-comercial', icon: Users, roles: ['administrador'] },
+  { name: 'Usuarios', href: '/dashboard/users', icon: UserSquare2, adminOnly: true },
 ];
 
-export function Sidebar({ profile }: { profile: any }) {
+export function Sidebar({ profilePromise }: { profilePromise?: Promise<any> }) {
   const pathname = usePathname();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (profilePromise) {
+      profilePromise.then(setProfile);
+    }
+  }, [profilePromise]);
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-[#0f0f13] border-r border-slate-200 dark:border-white/10 h-screen sticky top-0 transition-colors">
@@ -38,8 +52,14 @@ export function Sidebar({ profile }: { profile: any }) {
 
       <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto pt-4">
         {navItems.map((item) => {
+          // Si el item es solo admin y el usuario no es admin global, ocultar
           if (item.adminOnly && profile?.user_type !== 'administrador') return null;
           
+          // Lógica de Modos/Roles Especiales
+          if (item.roles && profile?.user_type !== 'administrador') {
+            const activeRoleName = profile?.roles?.find((r: any) => r.role_id === profile?.active_role_id)?.roles?.name?.toLowerCase();
+            if (!activeRoleName || !item.roles.includes(activeRoleName)) return null;
+          }
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const Icon = item.icon;
 

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { createDeposito } from './deposits'
 
 export type UserProfile = {
   id: string
@@ -12,7 +13,9 @@ export type UserProfile = {
   alias: string
   user_type: 'administrador' | 'usuario'
   role: string | null
+  active_role_id: string | null
   created_at: string
+  roles?: { role_id: string, roles: { name: string } }[]
 }
 
 async function requireAdmin() {
@@ -38,10 +41,16 @@ export async function getUsers(): Promise<UserProfile[]> {
   await requireAdmin()
   const supabase = await createAdminClient()
   
-  // Obtenemos todos los perfiles directamente
+  // Obtenemos todos los perfiles con sus roles
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select(`
+      *,
+      roles:user_roles(
+        role_id,
+        roles(name)
+      )
+    `)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -73,26 +82,39 @@ export async function createUser(data: any) {
 
   const userId = authData.user.id
 
-  // 2. Por el trigger (handle_new_user), el perfil ya se creó con 'usuario' por defecto.
-  // Solo la primera vez lo actualizamos con los roles deseados usando su ID.
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ 
-      user_type: data.user_type, 
-      role: data.role,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      alias: data.alias
-    })
-    .eq('id', userId)
+  // 3. Asignar múltiples roles en la tabla intermedia
+  if (data.role_ids && data.role_ids.length > 0) {
+    const rolesToInsert = data.role_ids.map((roleId: string) => ({
+      user_id: userId,
+      role_id: roleId
+    }))
+    
+    await supabase.from('user_roles').insert(rolesToInsert)
 
-  if (profileError) {
-    // Revertir creación si falla la actualización del rol
-    await supabase.auth.admin.deleteUser(userId)
-    throw new Error('Error al asignar el rol al nuevo usuario: ' + profileError.message)
+    // Establecer el primero como activo por defecto
+    await supabase.from('profiles').update({ active_role_id: data.role_ids[0] }).eq('id', userId)
+  }
+
+  // 4. Si uno de los roles es 'vendedor', crear automáticamente un sub-depósito
+  // (Buscamos si 'vendedor' está en la lista de nombres de roles asignados)
+  const { data: selectedRoles } = await supabase.from('roles').select('name').in('id', data.role_ids || [])
+  const isVendedor = selectedRoles?.some(r => r.name.toLowerCase() === 'vendedor')
+
+  if (isVendedor) {
+    try {
+      await createDeposito({
+        nombre: data.alias || `${data.first_name} ${data.last_name}`,
+        tipo: 'vendedor',
+        usuario_id: userId,
+        activo: true
+      });
+    } catch (depError: any) {
+      console.error('Error al crear depósito automático:', depError);
+    }
   }
 
   revalidatePath('/dashboard/users')
+  revalidatePath('/dashboard/depositos')
   return { success: true }
 }
 
@@ -100,22 +122,58 @@ export async function updateUser(id: string, data: any) {
   await requireAdmin()
   const supabase = await createAdminClient()
 
+  // 1. Actualizar perfil básico
   const { error } = await supabase
     .from('profiles')
     .update({
       user_type: data.user_type,
-      role: data.role,
       first_name: data.first_name,
       last_name: data.last_name,
       alias: data.alias
     })
     .eq('id', id)
 
-  if (error) {
-    throw new Error('Error al actualizar el usuario: ' + error.message)
+  if (error) throw new Error('Error al actualizar el usuario: ' + error.message)
+
+  // 2. Actualizar roles
+  if (data.role_ids) {
+    // Eliminar viejos y poner nuevos
+    await supabase.from('user_roles').delete().eq('user_id', id)
+    
+    if (data.role_ids.length > 0) {
+      const rolesToInsert = data.role_ids.map((roleId: string) => ({
+        user_id: id,
+        role_id: roleId
+      }))
+      await supabase.from('user_roles').insert(rolesToInsert)
+
+      // Si el rol activo ya no está en la lista, poner el primero
+      const { data: profile } = await supabase.from('profiles').select('active_role_id').eq('id', id).single()
+      if (!data.role_ids.includes(profile?.active_role_id)) {
+        await supabase.from('profiles').update({ active_role_id: data.role_ids[0] }).eq('id', id)
+      }
+    } else {
+      await supabase.from('profiles').update({ active_role_id: null }).eq('id', id)
+    }
   }
 
   revalidatePath('/dashboard/users')
+  return { success: true }
+}
+
+export async function switchActiveRole(roleId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autorizado')
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ active_role_id: roleId })
+    .eq('id', user.id)
+
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/dashboard')
   return { success: true }
 }
 

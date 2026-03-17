@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Package, ArrowLeft, PlusCircle, AlertCircle, Calendar, ShoppingCart } from 'lucide-react'
+import { Package, ArrowLeft, PlusCircle, AlertCircle, Calendar, Receipt } from 'lucide-react'
 import Link from 'next/link'
 import { getCurrentCycle, openNewCycle, closeCycle, getStockReport } from '@/app/actions/inventory'
 import { getProducts } from '@/app/actions/products'
@@ -23,11 +23,16 @@ export default async function OrdersPage() {
     .eq('id', user.id)
     .single()
 
-  const cycle = await getCurrentCycle()
-  const products = await getProducts()
-  const customers = await getCustomers()
-  const initialOrders = cycle ? await getOrdersWithItems(cycle.id) : []
-  const reportData = cycle?.status === 'cerrado' ? await getStockReport(cycle.id) : []
+  const [cycle, products, customers] = await Promise.all([
+    getCurrentCycle(),
+    getProducts(),
+    getCustomers()
+  ]);
+
+  const [initialOrders, reportData] = await Promise.all([
+    cycle ? getOrdersWithItems(cycle.id) : Promise.resolve([]),
+    cycle?.status === 'cerrado' ? getStockReport(cycle.id) : Promise.resolve([])
+  ]);
 
   const handleStartWeek = async () => {
     'use server'
@@ -53,7 +58,7 @@ export default async function OrdersPage() {
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              Gestión Semanal
+              Preventa Semanal
               {cycle?.status === 'activo' && (
                 <span className="text-[10px] bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-black animate-pulse">En curso</span>
               )}
@@ -70,7 +75,7 @@ export default async function OrdersPage() {
           {cycle?.status === 'activo' && (profile?.user_type === 'administrador' || profile?.role === 'jefe de deposito') && (
             <form action={handleCloseWeek}>
               <button className="bg-red-500 hover:bg-red-400 text-white text-sm px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-red-500/20 font-bold active:scale-95">
-                Cerrar Semana
+                Finalizar Preventa
               </button>
             </form>
           )}
@@ -89,7 +94,7 @@ export default async function OrdersPage() {
             {profile?.user_type === 'administrador' || profile?.role === 'jefe de deposito' ? (
                <form action={handleStartWeek}>
                  <button className="bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded-2xl font-black flex items-center gap-2 shadow-2xl shadow-purple-600/40 transition-all hover:scale-105 active:scale-95 group">
-                  <PlusCircle className="w-6 h-6 group-hover:rotate-90 transition-transform" /> Iniciar Nueva Semana
+                  <PlusCircle className="w-6 h-6 group-hover:rotate-90 transition-transform" /> Iniciar Preventa
                 </button>
                </form>
             ) : (
